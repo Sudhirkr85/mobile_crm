@@ -2118,6 +2118,15 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
     final status = (_detail!['status'] ?? 'active').toString().toLowerCase();
     final installments = _detail!['installments'] as List<dynamic>? ?? [];
 
+    final refunded = _payments
+        .where((p) => p['type'] == 'refund' && p['status'] != 'VOIDED')
+        .fold(0.0, (sum, p) => sum + (p['amount'] ?? 0));
+
+    final upcoming = _detail!['upcomingInstallment'];
+    final nextDueAmt = upcoming != null ? (upcoming['amount'] ?? 0) : 0;
+    final nextDueDateRaw = upcoming != null ? upcoming['dueDate'] : null;
+    final nextDueDateFormatted = nextDueDateRaw != null ? _formatDateString(nextDueDateRaw) : 'N/A';
+
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
       appBar: AppBar(
@@ -2238,19 +2247,26 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
             const SizedBox(height: 20),
 
             // Financial Summary
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(12)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('FINANCIAL SUMMARY', style: TextStyle(color: Colors.blueAccent, fontSize: 12, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 12),
-                  _buildInfoRow('Total Fees', '₹$totalFees'),
-                  _buildInfoRow('Amount Paid', '₹$totalPaid'),
-                  _buildInfoRow('Remaining Balance', '₹$pendingAmount'),
-                ],
-              ),
+            const Text(
+              'FINANCIAL SUMMARY',
+              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            GridView.count(
+              crossAxisCount: 3,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              childAspectRatio: 1.1,
+              children: [
+                _buildSummaryCard('Total Fees', '₹$totalFees', Icons.receipt, const Color(0xFF818CF8)),
+                _buildSummaryCard('Total Paid', '₹$totalPaid', Icons.check_circle_outline, const Color(0xFF34D399)),
+                _buildSummaryCard('Refunded', '₹${refunded.toStringAsFixed(0)}', Icons.keyboard_return, const Color(0xFFF87171)),
+                _buildSummaryCard('Remaining', '₹$pendingAmount', Icons.hourglass_empty, const Color(0xFFFBBF24)),
+                _buildSummaryCard('Next Due', nextDueAmt > 0 ? '₹$nextDueAmt' : 'Paid', Icons.wallet, const Color(0xFF60A5FA)),
+                _buildSummaryCard('Due Date', nextDueDateFormatted, Icons.calendar_month, const Color(0xFFC084FC)),
+              ],
             ),
             const SizedBox(height: 20),
 
@@ -2368,6 +2384,39 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
               ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryCard(String label, String value, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withOpacity(0.03)),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: color, size: 18),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.blueGrey, fontSize: 8, fontWeight: FontWeight.w600),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ],
       ),
     );
