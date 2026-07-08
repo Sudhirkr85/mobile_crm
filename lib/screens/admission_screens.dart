@@ -18,6 +18,7 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
   String _searchQuery = '';
   String _statusFilter = 'ALL';
   bool _hasDuesFilter = false;
+  String _dateRangeFilter = 'thisMonth'; // 'thisMonth', 'thisYear', 'allTime'
 
   int _currentPage = 1;
   int _totalPages = 1;
@@ -95,7 +96,15 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
       }
       if (_hasDuesFilter) {
         queryParams['hasDues'] = 'true';
+        queryParams['sortBy'] = 'nextDue';
+        queryParams['sortOrder'] = 'asc';
       }
+
+      // Add createdDate range filters
+      final dateRange = _getDateRangeParams();
+      queryParams['dateFrom'] = dateRange['dateFrom'];
+      queryParams['dateTo'] = dateRange['dateTo'];
+
       final res = await apiService.getRequest('/admissions', queryParameters: queryParams);
       if (res.statusCode == 200 && res.data != null) {
         final items = res.data['data'] ?? [];
@@ -132,6 +141,31 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
       ),
       body: Column(
         children: [
+          // Date Range Filter Tabs
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Row(
+              children: [
+                const Text(
+                  'Date Range: ',
+                  style: TextStyle(color: Colors.blueGrey, fontSize: 13, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildDateTabButton('This Month', 'thisMonth'),
+                      const SizedBox(width: 6),
+                      _buildDateTabButton('This Year', 'thisYear'),
+                      const SizedBox(width: 6),
+                      _buildDateTabButton('All Time', 'allTime'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -140,8 +174,8 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                   child: TextField(
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
-                      hintText: 'Search students...',
-                      hintStyle: const TextStyle(color: Colors.blueGrey),
+                      hintText: 'Search by Name, Mobile & Course...',
+                      hintStyle: const TextStyle(color: Colors.blueGrey, fontSize: 13),
                       prefixIcon: const Icon(Icons.search, color: Colors.blueGrey),
                       filled: true,
                       fillColor: const Color(0xFF1E293B),
@@ -191,7 +225,10 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
             child: Row(
               children: [
                 FilterChip(
-                  label: const Text('Pending Dues Only', style: TextStyle(color: Colors.white, fontSize: 12)),
+                  label: Text(
+                    _hasDuesFilter ? 'Pending Dues & Upcoming Sort: ON' : 'Filter: Pending Dues & Upcoming Sort',
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                  ),
                   selected: _hasDuesFilter,
                   selectedColor: Colors.amber.shade700,
                   backgroundColor: const Color(0xFF1E293B),
@@ -314,6 +351,60 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                       ),
           ),
         ],
+      ),
+    );
+  }
+
+  Map<String, String> _getDateRangeParams() {
+    final today = DateTime.now();
+    DateTime startDate;
+    DateTime endDate = DateTime(today.year, today.month, today.day, 23, 59, 59, 999);
+
+    if (_dateRangeFilter == 'thisMonth') {
+      startDate = DateTime(today.year, today.month, 1);
+    } else if (_dateRangeFilter == 'thisYear') {
+      startDate = DateTime(today.year, 1, 1);
+    } else {
+      // allTime: since 2020
+      startDate = DateTime(2020, 1, 1);
+    }
+
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    return {
+      'dateFrom': formatter.format(startDate),
+      'dateTo': formatter.format(endDate),
+    };
+  }
+
+  Widget _buildDateTabButton(String label, String value) {
+    final isSelected = _dateRangeFilter == value;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _dateRangeFilter = value;
+          });
+          _loadAdmissions(isFirstLoad: true);
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.blue.shade700 : const Color(0xFF1E293B),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isSelected ? Colors.blueAccent : Colors.white.withOpacity(0.05),
+            ),
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: isSelected ? Colors.white : Colors.blueGrey,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
       ),
     );
   }
