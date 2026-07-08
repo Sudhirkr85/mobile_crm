@@ -2148,7 +2148,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                           ? () => _recordPayment(pendingAmount.toDouble())
                           : null,
                       icon: const Icon(Icons.payment, color: Colors.white, size: 16),
-                      label: const Text('Record Fee Payment', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                      label: const Text('Add Payment', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.teal,
                         padding: const EdgeInsets.symmetric(vertical: 12),
