@@ -567,7 +567,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    _buildPunchWidgetCard(apiService),
+                    TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0.0, end: 1.0),
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.easeOutCubic,
+                      builder: (context, value, child) {
+                        return Opacity(
+                          opacity: value,
+                          child: Transform.translate(
+                            offset: Offset(0, 20 * (1 - value)),
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: _buildPunchWidgetCard(apiService),
+                    ),
                     const SizedBox(height: 20),
 
                     // Quick Actions
@@ -581,48 +595,71 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    GridView.count(
-                      crossAxisCount: 3,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      children: [
-                        _buildActionCard(
-                          title: 'Leads',
-                          icon: Icons.contacts_outlined,
-                          color: Colors.blue,
-                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EnquiryListScreen())),
-                        ),
-                        _buildActionCard(
-                          title: 'Admissions',
-                          icon: Icons.assignment_turned_in_outlined,
-                          color: Colors.teal,
-                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdmissionListScreen())),
-                        ),
-                        if (isAdmin) ...[
+                    Builder(
+                      builder: (context) {
+                        final cards = [
                           _buildActionCard(
-                            title: 'Reports',
-                            icon: Icons.bar_chart_outlined,
-                            color: Colors.deepPurpleAccent,
-                            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportsScreen())),
+                            title: 'Leads',
+                            icon: Icons.contacts_outlined,
+                            color: Colors.blue,
+                            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EnquiryListScreen())),
                           ),
-                        ],
-                        _buildActionCard(
-                          title: 'My Attendance',
-                          icon: Icons.fingerprint,
-                          color: Colors.pinkAccent,
-                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AttendanceScreen())),
-                        ),
-                        if (isAdmin) ...[
                           _buildActionCard(
-                            title: 'Attendance Report',
-                            icon: Icons.assessment_outlined,
-                            color: Colors.orangeAccent,
-                            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminAttendanceScreen())),
+                            title: 'Admissions',
+                            icon: Icons.assignment_turned_in_outlined,
+                            color: Colors.teal,
+                            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdmissionListScreen())),
                           ),
-                        ],
-                      ],
+                          if (isAdmin)
+                            _buildActionCard(
+                              title: 'Reports',
+                              icon: Icons.bar_chart_outlined,
+                              color: Colors.deepPurpleAccent,
+                              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportsScreen())),
+                            ),
+                          _buildActionCard(
+                            title: 'My Attendance',
+                            icon: Icons.fingerprint,
+                            color: Colors.pinkAccent,
+                            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AttendanceScreen())),
+                          ),
+                          if (isAdmin)
+                            _buildActionCard(
+                              title: 'Attendance Report',
+                              icon: Icons.assessment_outlined,
+                              color: Colors.orangeAccent,
+                              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminAttendanceScreen())),
+                            ),
+                        ];
+
+                        return GridView.builder(
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                          ),
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: cards.length,
+                          itemBuilder: (context, index) {
+                            return TweenAnimationBuilder<double>(
+                              tween: Tween(begin: 0.0, end: 1.0),
+                              duration: Duration(milliseconds: 300 + (index * 100)),
+                              curve: Curves.easeOutBack,
+                              builder: (context, value, child) {
+                                return Opacity(
+                                  opacity: value,
+                                  child: Transform.translate(
+                                    offset: Offset(0, 30 * (1 - value)),
+                                    child: child,
+                                  ),
+                                );
+                              },
+                              child: cards[index],
+                            );
+                          },
+                        );
+                      }
                     ),
                   ],
                 ),
@@ -693,42 +730,53 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required Color color,
     required VoidCallback onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFF1E293B),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.05)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
+    bool isPressed = false;
+    return StatefulBuilder(
+      builder: (context, setStateCard) {
+        return GestureDetector(
+          onTapDown: (_) => setStateCard(() => isPressed = true),
+          onTapUp: (_) => setStateCard(() => isPressed = false),
+          onTapCancel: () => setStateCard(() => isPressed = false),
+          onTap: onTap,
+          child: AnimatedScale(
+            scale: isPressed ? 0.92 : 1.0,
+            duration: const Duration(milliseconds: 100),
+            child: Container(
               decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
-                shape: BoxShape.circle,
+                color: const Color(0xFF1E293B),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.white.withOpacity(0.05)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-              child: Icon(icon, color: color, size: 24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(icon, color: color, size: 24),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    title,
+                    style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      }
     );
   }
 }

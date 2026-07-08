@@ -870,43 +870,579 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
     );
   }
 
+  Future<void> _setInstallmentPlan(double remainingInstallmentBalance) async {
+    final List<dynamic> existingInstallments = _detail!['installments'] as List<dynamic>? ?? [];
+    final List<InstallmentRowData> dialogRows = [];
+
+    if (existingInstallments.isNotEmpty) {
+      for (var inst in existingInstallments) {
+        final amount = (inst['amount'] as num?)?.toDouble() ?? 0.0;
+        final dueDateStr = inst['dueDate'] as String?;
+        final dueDate = dueDateStr != null ? DateTime.parse(dueDateStr) : null;
+        dialogRows.add(InstallmentRowData(amount: amount, dueDate: dueDate));
+      }
+    } else {
+      dialogRows.add(InstallmentRowData(amount: remainingInstallmentBalance, dueDate: null));
+    }
+
+    await showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Set Installments',
+      transitionDuration: const Duration(milliseconds: 250),
+      pageBuilder: (context, anim1, anim2) {
+        return ScaleTransition(
+          scale: CurvedAnimation(parent: anim1, curve: Curves.easeOut),
+          child: StatefulBuilder(
+            builder: (context, setDialogState) {
+              double currentSum = 0.0;
+              for (var row in dialogRows) {
+                currentSum += double.tryParse(row.amountController.text) ?? 0.0;
+              }
+              final diff = remainingInstallmentBalance - currentSum;
+              final isMatching = diff.abs() < 0.01;
+
+              return AlertDialog(
+                backgroundColor: const Color(0xFF1E293B),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                title: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(
+                        color: Colors.amber,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.calendar_month, color: Colors.white, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text('Set Installments', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                        Text('Configure installment schedule', style: TextStyle(color: Colors.blueGrey, fontSize: 12)),
+                      ],
+                    ),
+                  ],
+                ),
+                content: Container(
+                  width: double.maxFinite,
+                  constraints: const BoxConstraints(maxHeight: 400),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('Remaining Dues to Plan:', style: TextStyle(color: Colors.amberAccent, fontSize: 13)),
+                              Text('₹${remainingInstallmentBalance.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: dialogRows.length,
+                          itemBuilder: (context, index) {
+                            final row = dialogRows[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12.0),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: row.amountController,
+                                      keyboardType: TextInputType.number,
+                                      style: const TextStyle(color: Colors.white),
+                                      decoration: InputDecoration(
+                                        labelText: 'Amount (₹) *',
+                                        labelStyle: const TextStyle(color: Colors.blueGrey),
+                                        hintText: 'Inst. ${index + 1}',
+                                      ),
+                                      onChanged: (_) {
+                                        setDialogState(() {});
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: InkWell(
+                                      onTap: () async {
+                                        final DateTime? picked = await showDatePicker(
+                                          context: context,
+                                          initialDate: row.dueDate ?? DateTime.now().add(Duration(days: 30 * (index + 1))),
+                                          firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                                          lastDate: DateTime(2100),
+                                          builder: (context, child) {
+                                            return Theme(
+                                              data: Theme.of(context).copyWith(
+                                                colorScheme: const ColorScheme.dark(
+                                                  primary: Colors.teal,
+                                                  onPrimary: Colors.white,
+                                                  surface: Color(0xFF1E293B),
+                                                  onSurface: Colors.white,
+                                                ),
+                                                dialogTheme: const DialogThemeData(backgroundColor: Color(0xFF0F172A)),
+                                              ),
+                                              child: child!,
+                                            );
+                                          },
+                                        );
+                                        if (picked != null) {
+                                          setDialogState(() {
+                                            row.dueDate = picked;
+                                          });
+                                        }
+                                      },
+                                      child: InputDecorator(
+                                        decoration: const InputDecoration(
+                                          labelText: 'Due Date *',
+                                          labelStyle: TextStyle(color: Colors.blueGrey),
+                                        ),
+                                        child: Text(
+                                          row.dueDate != null
+                                              ? DateFormat('dd MMM yyyy').format(row.dueDate!)
+                                              : 'Select Date',
+                                          style: TextStyle(
+                                            color: row.dueDate != null ? Colors.white : Colors.tealAccent,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent),
+                                    onPressed: () {
+                                      if (dialogRows.length > 1) {
+                                        setDialogState(() {
+                                          row.dispose();
+                                          dialogRows.removeAt(index);
+                                        });
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                        TextButton.icon(
+                          onPressed: () {
+                            setDialogState(() {
+                              final row = InstallmentRowData(amount: null, dueDate: null);
+                              row.amountController.addListener(() {
+                                setDialogState(() {});
+                              });
+                              dialogRows.add(row);
+                            });
+                          },
+                          icon: const Icon(Icons.add, color: Colors.teal),
+                          label: const Text('Add Installment Row', style: TextStyle(color: Colors.teal)),
+                        ),
+                        const SizedBox(height: 12),
+                        if (!isMatching)
+                          Text(
+                            diff > 0
+                                ? 'Total is ₹${diff.toStringAsFixed(0)} LESS than remaining balance.'
+                                : 'Total EXCEEDS remaining balance by ₹${diff.abs().toStringAsFixed(0)}.',
+                            style: const TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.bold),
+                          )
+                        else
+                          Row(
+                            children: const [
+                              Icon(Icons.check_circle_outline, color: Colors.green, size: 16),
+                              SizedBox(width: 6),
+                              Text('Total matches remaining balance exactly!', style: TextStyle(color: Colors.green, fontSize: 12)),
+                            ],
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      for (var r in dialogRows) {
+                        r.dispose();
+                      }
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Cancel', style: TextStyle(color: Colors.redAccent)),
+                  ),
+                  ElevatedButton(
+                    onPressed: isMatching
+                        ? () async {
+                            final List<Map<String, dynamic>> instData = [];
+                            for (var r in dialogRows) {
+                              final amt = double.tryParse(r.amountController.text) ?? 0.0;
+                              if (amt <= 0 || r.dueDate == null) {
+                                _showErrorDialog('All rows must have positive amounts and valid due dates.');
+                                return;
+                              }
+                              instData.add({
+                                'amount': amt,
+                                'dueDate': DateFormat('yyyy-MM-dd').format(r.dueDate!),
+                                'note': 'Installment plan updated by admin',
+                              });
+                            }
+
+                            Navigator.pop(context);
+                            setState(() {
+                              _isLoading = true;
+                            });
+
+                            try {
+                              final apiService = Provider.of<ApiService>(context, listen: false);
+                              final res = await apiService.putRequest(
+                                '/admissions/${widget.admissionId}',
+                                data: {
+                                  'paymentType': 'INSTALLMENT',
+                                  'installments': instData,
+                                },
+                              );
+                              if (res.statusCode == 200) {
+                                _showSuccessDialogWithMessage('Installment plan saved successfully!');
+                                _loadDetails();
+                              } else {
+                                String msg = res.data?['message'] ?? 'Failed to save installments';
+                                _showErrorDialog(msg);
+                              }
+                            } catch (e) {
+                              _showErrorDialog(e.toString());
+                            } finally {
+                              setState(() {
+                                _isLoading = false;
+                              });
+                            }
+                          }
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.amber.shade700,
+                      disabledBackgroundColor: Colors.grey,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: const Text('Save Plan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _refundAdmission(double maxRefundable) async {
+    final amountController = TextEditingController();
+    final reasonController = TextEditingController();
+    final noteController = TextEditingController();
+    String refundMode = 'CASH';
+    final List<String> modes = ['CASH', 'UPI', 'CARD', 'ONLINE', 'CHEQUE', 'BANK_TRANSFER'];
+
+    String getModeLabel(String mode) {
+      switch (mode) {
+        case 'CASH':
+          return '💵 Cash';
+        case 'UPI':
+          return '📱 UPI';
+        case 'CARD':
+          return '💳 Card';
+        case 'ONLINE':
+          return '🏦 Online Transfer';
+        case 'CHEQUE':
+          return '📋 Cheque';
+        case 'BANK_TRANSFER':
+          return '🏛️ Bank Transfer';
+        default:
+          return mode;
+      }
+    }
+
+    await showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Refund Admission',
+      transitionDuration: const Duration(milliseconds: 250),
+      pageBuilder: (context, anim1, anim2) {
+        return ScaleTransition(
+          scale: CurvedAnimation(parent: anim1, curve: Curves.easeOut),
+          child: StatefulBuilder(
+            builder: (context, setDialogState) {
+              return AlertDialog(
+                backgroundColor: const Color(0xFF1E293B),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                title: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(
+                        color: Colors.orange,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.undo, color: Colors.white, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text('Refund Admission', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                        Text('Process global refund', style: TextStyle(color: Colors.blueGrey, fontSize: 12)),
+                      ],
+                    ),
+                  ],
+                ),
+                content: Container(
+                  width: double.maxFinite,
+                  constraints: const BoxConstraints(maxHeight: 400),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('Max Refundable:', style: TextStyle(color: Colors.orangeAccent, fontSize: 13)),
+                              Text('₹${maxRefundable.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: amountController,
+                          keyboardType: TextInputType.number,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: const InputDecoration(
+                            labelText: 'Refund Amount (₹) *',
+                            labelStyle: TextStyle(color: Colors.blueGrey),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<String>(
+                          value: refundMode,
+                          dropdownColor: const Color(0xFF1E293B),
+                          style: const TextStyle(color: Colors.white),
+                          decoration: const InputDecoration(
+                            labelText: 'Refund Mode *',
+                            labelStyle: TextStyle(color: Colors.blueGrey),
+                          ),
+                          items: modes.map((m) {
+                            return DropdownMenuItem(
+                              value: m,
+                              child: Text(getModeLabel(m)),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) {
+                              setDialogState(() {
+                                refundMode = val;
+                              });
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: reasonController,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: const InputDecoration(
+                            labelText: 'Reason for Refund *',
+                            labelStyle: TextStyle(color: Colors.blueGrey),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: noteController,
+                          maxLines: 2,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: const InputDecoration(
+                            labelText: 'Note (Optional)',
+                            labelStyle: TextStyle(color: Colors.blueGrey),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel', style: TextStyle(color: Colors.redAccent)),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      final amount = double.tryParse(amountController.text) ?? 0.0;
+                      final reason = reasonController.text.trim();
+                      if (amount <= 0 || amount > maxRefundable) {
+                        _showErrorDialog('Please enter a valid refund amount (Max: ₹${maxRefundable.toStringAsFixed(0)})');
+                        return;
+                      }
+                      if (reason.isEmpty) {
+                        _showErrorDialog('Please enter a reason for the refund.');
+                        return;
+                      }
+
+                      final successfulPayments = _payments.where((p) {
+                        if (p['type'] == 'refund') return false;
+                        final status = (p['status'] ?? '').toString().toLowerCase();
+                        return status != 'voided';
+                      }).toList();
+
+                      if (successfulPayments.isEmpty) {
+                        _showErrorDialog('No successful payments found to refund.');
+                        return;
+                      }
+
+                      successfulPayments.sort((a, b) {
+                        final dateA = DateTime.parse(a['createdAt'] ?? a['paymentDate'] ?? DateTime.now().toString());
+                        final dateB = DateTime.parse(b['createdAt'] ?? b['paymentDate'] ?? DateTime.now().toString());
+                        return dateB.compareTo(dateA);
+                      });
+
+                      final originalPaymentId = successfulPayments.first['_id'] ?? successfulPayments.first['id'];
+
+                      Navigator.pop(context);
+                      setState(() {
+                        _isLoading = true;
+                      });
+
+                      try {
+                        final apiService = Provider.of<ApiService>(context, listen: false);
+                        final res = await apiService.postRequest(
+                          '/payments/$originalPaymentId/refund',
+                          data: {
+                            'amount': amount,
+                            'reason': reason,
+                            'refundMode': refundMode,
+                            'note': noteController.text.trim().isNotEmpty ? noteController.text.trim() : 'Refund processed',
+                          },
+                        );
+
+                        if (res.statusCode == 200 || res.statusCode == 201) {
+                          _showSuccessDialogWithMessage('Refund processed successfully!');
+                          _loadDetails();
+                        } else {
+                          String msg = res.data?['message'] ?? 'Failed to process refund';
+                          _showErrorDialog(msg);
+                        }
+                      } catch (e) {
+                        _showErrorDialog(e.toString());
+                      } finally {
+                        setState(() {
+                          _isLoading = false;
+                        });
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange.shade800,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: const Text('Process Refund', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _handleDropStudent() async {
     final reasonController = TextEditingController();
+    bool clearDues = false;
+
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFF1E293B),
-          title: const Text('Drop Student', style: TextStyle(color: Colors.white)),
-          content: TextField(
-            controller: reasonController,
-            style: const TextStyle(color: Colors.white),
-            decoration: const InputDecoration(labelText: 'Reason for dropping', labelStyle: TextStyle(color: Colors.blueGrey)),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel', style: TextStyle(color: Colors.redAccent)),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                try {
-                  final apiService = Provider.of<ApiService>(context, listen: false);
-                  final res = await apiService.postRequest('/admissions/${widget.admissionId}/drop', data: {
-                    'reason': reasonController.text.trim(),
-                  });
-                  if (res.statusCode == 200) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF1E293B),
+              title: const Text('Drop Student', style: TextStyle(color: Colors.white)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: reasonController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(labelText: 'Reason for dropping', labelStyle: TextStyle(color: Colors.blueGrey)),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: clearDues,
+                        activeColor: Colors.teal,
+                        checkColor: Colors.white,
+                        onChanged: (val) {
+                          if (val != null) {
+                            setDialogState(() {
+                              clearDues = val;
+                            });
+                          }
+                        },
+                      ),
+                      const Expanded(
+                        child: Text(
+                          'Clear remaining dues (write-off)',
+                          style: TextStyle(color: Colors.blueGrey, fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel', style: TextStyle(color: Colors.redAccent)),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
                     Navigator.pop(context);
-                    _loadDetails();
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Student dropped successfully!'), backgroundColor: Colors.redAccent));
-                  }
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to drop student: $e')));
-                }
-              },
-              child: const Text('Drop'),
-            )
-          ],
+                    setState(() {
+                      _isLoading = true;
+                    });
+                    try {
+                      final apiService = Provider.of<ApiService>(context, listen: false);
+                      final res = await apiService.postRequest('/admissions/${widget.admissionId}/drop', data: {
+                        'reason': reasonController.text.trim(),
+                        'clearDues': clearDues,
+                      });
+                      if (res.statusCode == 200) {
+                        _loadDetails();
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Student dropped successfully!'), backgroundColor: Colors.redAccent));
+                      }
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to drop student: $e')));
+                    } finally {
+                      setState(() {
+                        _isLoading = false;
+                      });
+                    }
+                  },
+                  child: const Text('Drop'),
+                )
+              ],
+            );
+          }
         );
       },
     );
@@ -943,38 +1479,91 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
         backgroundColor: const Color(0xFF1E293B),
         elevation: 0,
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: (status == 'Active' && pendingAmount > 0)
-                    ? () => _recordPayment(pendingAmount.toDouble())
-                    : null,
-                icon: const Icon(Icons.payment, color: Colors.white),
-                label: const Text('Record Fee Payment', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: (status == 'Active' && pendingAmount > 0)
+                          ? () => _recordPayment(pendingAmount.toDouble())
+                          : null,
+                      icon: const Icon(Icons.payment, color: Colors.white, size: 16),
+                      label: const Text('Record Fee Payment', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  if (status == 'Active' && isAdmin) ...[
+                    const SizedBox(width: 8),
+                    ElevatedButton.icon(
+                      onPressed: _handleDropStudent,
+                      icon: const Icon(Icons.person_off, color: Colors.white, size: 16),
+                      label: const Text('Drop', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ]
+                ],
               ),
-            ),
-            if (status == 'Active' && isAdmin) ...[
-              const SizedBox(width: 12),
-              ElevatedButton.icon(
-                onPressed: _handleDropStudent,
-                icon: const Icon(Icons.person_off, color: Colors.white),
-                label: const Text('Drop', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.redAccent,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              if (isAdmin) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    if (status == 'Active') ...[
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () => _setInstallmentPlan(totalFees - (_detail!['registrationAmount'] ?? 0)),
+                          icon: const Icon(Icons.calendar_month, color: Colors.white, size: 16),
+                          label: const Text('Set Installments', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.amber.shade700,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                        ),
+                      ),
+                    ],
+                    Builder(
+                      builder: (context) {
+                        final paid = _payments.where((p) => p['type'] != 'refund' && p['status'] != 'VOIDED').fold(0.0, (sum, p) => sum + (p['amount'] ?? 0));
+                        final refunded = _payments.where((p) => p['type'] == 'refund' && p['status'] != 'VOIDED').fold(0.0, (sum, p) => sum + (p['amount'] ?? 0));
+                        final maxRefund = paid - refunded;
+                        if (maxRefund > 0) {
+                          return Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.only(left: (status == 'Active') ? 8.0 : 0.0),
+                              child: ElevatedButton.icon(
+                                onPressed: () => _refundAdmission(maxRefund),
+                                icon: const Icon(Icons.undo, color: Colors.white, size: 16),
+                                label: const Text('Refund Admission', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.orange.shade800,
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+                        return const SizedBox();
+                      }
+                    ),
+                  ],
                 ),
-              ),
-            ]
-          ],
+              ],
+            ],
+          ),
         ),
       ),
       body: SingleChildScrollView(

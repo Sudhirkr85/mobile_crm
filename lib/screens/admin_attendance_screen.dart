@@ -10,15 +10,8 @@ class AdminAttendanceScreen extends StatefulWidget {
   State<AdminAttendanceScreen> createState() => _AdminAttendanceScreenState();
 }
 
-class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> with SingleTickerProviderStateMixin {
+class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
   bool _isLoading = false;
-  late TabController _tabController;
-
-  // Logs List state
-  List<dynamic> _history = [];
-  List<dynamic> _filteredHistory = [];
-  String _searchQuery = '';
-  String _selectedRole = 'ALL';
 
   // Calendar View state
   List<dynamic> _users = [];
@@ -30,41 +23,9 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> with Sing
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-    _loadAdminHistory();
     _loadUsersList();
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _loadAdminHistory() async {
-    setState(() {
-      _isLoading = true;
-    });
-    try {
-      final apiService = Provider.of<ApiService>(context, listen: false);
-      final res = await apiService.getRequest('/attendance/admin-history');
-      if (res.statusCode == 200 && res.data != null) {
-        final data = res.data['data'];
-        setState(() {
-          _history = data['history'] ?? [];
-          _applyFilters();
-        });
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load attendance logs: $e')),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
 
   Future<void> _loadUsersList() async {
     try {
@@ -131,20 +92,6 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> with Sing
     }
   }
 
-  void _applyFilters() {
-    setState(() {
-      _filteredHistory = _history.where((log) {
-        final name = (log['userName'] ?? '').toString().toLowerCase();
-        final matchesSearch = name.contains(_searchQuery.toLowerCase());
-
-        final role = (log['userRole'] ?? '').toString().toUpperCase();
-        final matchesRole = _selectedRole == 'ALL' || role == _selectedRole;
-
-        return matchesSearch && matchesRole;
-      }).toList();
-    });
-  }
-
   String _formatTime(dynamic timestamp) {
     if (timestamp == null) return '--:--';
     try {
@@ -163,187 +110,8 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> with Sing
         title: const Text('Staff Attendance Board', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: const Color(0xFF1E293B),
         elevation: 0,
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: Colors.blueAccent,
-          unselectedLabelColor: Colors.blueGrey,
-          indicatorColor: Colors.blueAccent,
-          tabs: const [
-            Tab(icon: Icon(Icons.list), text: 'Logs View'),
-            Tab(icon: Icon(Icons.calendar_month), text: 'Calendar View'),
-          ],
-        ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildLogsViewTab(),
-          _buildCalendarViewTab(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLogsViewTab() {
-    return Column(
-      children: [
-        // Filters Panel
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              TextField(
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'Search by employee name...',
-                  hintStyle: const TextStyle(color: Colors.blueGrey),
-                  prefixIcon: const Icon(Icons.search, color: Colors.blueGrey),
-                  filled: true,
-                  fillColor: const Color(0xFF1E293B),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-                onChanged: (val) {
-                  _searchQuery = val;
-                  _applyFilters();
-                },
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  const Text('Role Filter: ', style: TextStyle(color: Colors.blueGrey)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedRole,
-                      dropdownColor: const Color(0xFF1E293B),
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
-                        ),
-                        filled: true,
-                        fillColor: const Color(0xFF1E293B),
-                      ),
-                      items: const [
-                        DropdownMenuItem(value: 'ALL', child: Text('All Staff')),
-                        DropdownMenuItem(value: 'ADMIN', child: Text('Admins')),
-                        DropdownMenuItem(value: 'COUNSELOR', child: Text('Counselors')),
-                        DropdownMenuItem(value: 'EMPLOYEE', child: Text('Employees')),
-                      ],
-                      onChanged: (val) {
-                        if (val != null) {
-                          _selectedRole = val;
-                          _applyFilters();
-                        }
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-
-        // Logs list
-        Expanded(
-          child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _filteredHistory.isEmpty
-                  ? const Center(child: Text('No attendance records found.', style: TextStyle(color: Colors.blueGrey)))
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: _filteredHistory.length,
-                      itemBuilder: (context, index) {
-                        final log = _filteredHistory[index];
-                        final name = log['userName'] ?? 'Unknown Staff';
-                        final role = log['userRole'] ?? 'Employee';
-                        final date = log['date'] ?? '';
-                        final inTime = _formatTime(log['punchIn']);
-                        final outTime = _formatTime(log['punchOut']);
-                        final hours = log['totalHours'] ?? '--';
-                        final specialStatus = log['specialStatus'];
-
-                        return Card(
-                          color: const Color(0xFF1E293B),
-                          margin: const EdgeInsets.only(bottom: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      name,
-                                      style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                                    ),
-                                    Chip(
-                                      label: Text(
-                                        role.toUpperCase(),
-                                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                                      ),
-                                      backgroundColor: Colors.blueGrey,
-                                      padding: EdgeInsets.zero,
-                                      visualDensity: VisualDensity.compact,
-                                    ),
-                                  ],
-                                ),
-                                const Divider(color: Colors.white24, height: 16),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text('DATE', style: TextStyle(color: Colors.blueGrey, fontSize: 10)),
-                                        const SizedBox(height: 2),
-                                        Text(date, style: const TextStyle(color: Colors.white, fontSize: 13)),
-                                      ],
-                                    ),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text('PUNCH IN', style: TextStyle(color: Colors.blueGrey, fontSize: 10)),
-                                        const SizedBox(height: 2),
-                                        Text(inTime, style: TextStyle(color: inTime != '--:--' ? Colors.green : Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
-                                      ],
-                                    ),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text('PUNCH OUT', style: TextStyle(color: Colors.blueGrey, fontSize: 10)),
-                                        const SizedBox(height: 2),
-                                        Text(outTime, style: TextStyle(color: outTime != '--:--' ? Colors.redAccent : Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
-                                      ],
-                                    ),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text('HOURS', style: TextStyle(color: Colors.blueGrey, fontSize: 10)),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          specialStatus != null ? specialStatus.toString() : hours,
-                                          style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-        ),
-      ],
+      body: _buildCalendarViewTab(),
     );
   }
 
@@ -481,8 +249,9 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> with Sing
                   padding: const EdgeInsets.all(16.0),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 7,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
+                    crossAxisSpacing: 6,
+                    mainAxisSpacing: 6,
+                    childAspectRatio: 1.05,
                   ),
                   itemCount: totalDays + paddingOffset,
                   itemBuilder: (context, index) {
@@ -491,6 +260,7 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> with Sing
                     }
 
                     final day = index - paddingOffset + 1;
+                    final date = DateTime(_selectedMonth.year, _selectedMonth.month, day);
                     final dateStr = '${_selectedMonth.year}-${_selectedMonth.month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
 
                     // Find if there is an attendance record for this day
@@ -500,20 +270,53 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> with Sing
                     );
 
                     Color cellColor = const Color(0xFF1E293B);
-                    Color textColor = Colors.white70;
+                    Color textColor = Colors.white;
+                    String statusLabel = '';
+                    String subLabel = '';
+                    bool isMissedLogout = false;
+
+                    final today = DateTime.now();
+                    final todayStr = DateFormat('yyyy-MM-dd').format(today);
+                    final isToday = dateStr == todayStr;
+                    final isPast = date.isBefore(DateTime(today.year, today.month, today.day));
 
                     if (record != null) {
                       final specialStatus = record['specialStatus'];
                       if (specialStatus == 'LEAVE') {
-                        cellColor = Colors.orange.withOpacity(0.2);
-                        textColor = Colors.orange;
+                        cellColor = const Color(0xFFD97706);
+                        statusLabel = 'LEAVE';
                       } else if (specialStatus == 'WEEKOFF') {
-                        cellColor = Colors.purple.withOpacity(0.2);
-                        textColor = Colors.purple;
+                        cellColor = const Color(0xFF6366F1);
+                        statusLabel = 'WEEKOFF';
+                      } else if (record['punchIn'] != null) {
+                        final inTime = DateTime.parse(record['punchIn']).toLocal();
+
+                        if (record['punchOut'] != null) {
+                          final outTime = DateTime.parse(record['punchOut']).toLocal();
+                          cellColor = const Color(0xFF10B981);
+                          statusLabel = 'In: ${DateFormat('hh:mm').format(inTime)}';
+                          subLabel = 'Out: ${DateFormat('hh:mm').format(outTime)}';
+                        } else {
+                          if (isToday) {
+                            cellColor = const Color(0xFF10B981);
+                            statusLabel = 'In: ${DateFormat('hh:mm').format(inTime)}';
+                            subLabel = 'ACTIVE';
+                          } else {
+                            cellColor = const Color(0xFFEF4444);
+                            statusLabel = 'In: ${DateFormat('hh:mm').format(inTime)}';
+                            subLabel = 'MISS';
+                            isMissedLogout = true;
+                          }
+                        }
+                      }
+                    } else {
+                      if (isPast) {
+                        cellColor = const Color(0xFF334155).withOpacity(0.3);
+                        statusLabel = 'ABSENT';
+                        textColor = Colors.blueGrey.shade400;
                       } else {
-                        // Present (IN / OUT punch logs)
-                        cellColor = Colors.green.withOpacity(0.2);
-                        textColor = Colors.green;
+                        cellColor = const Color(0xFF1E293B);
+                        textColor = Colors.white30;
                       }
                     }
 
@@ -531,13 +334,62 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> with Sing
                         decoration: BoxDecoration(
                           color: cellColor,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: cellColor.withOpacity(0.5)),
+                          border: isToday
+                              ? Border.all(color: Colors.blueAccent, width: 1.5)
+                              : Border.all(color: Colors.white.withOpacity(0.05), width: 1),
                         ),
-                        child: Center(
-                          child: Text(
-                            '$day',
-                            style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 16),
-                          ),
+                        padding: const EdgeInsets.all(3),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  day.toString(),
+                                  style: TextStyle(
+                                    color: textColor,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  DateFormat('E').format(date).substring(0, 1),
+                                  style: TextStyle(
+                                    color: textColor.withOpacity(0.5),
+                                    fontSize: 7,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const Spacer(),
+                            if (statusLabel.isNotEmpty)
+                              Text(
+                                statusLabel,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 7,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            if (subLabel.isNotEmpty)
+                              Text(
+                                subLabel,
+                                style: TextStyle(
+                                  color: isMissedLogout
+                                      ? Colors.yellowAccent
+                                      : Colors.white.withOpacity(0.9),
+                                  fontSize: 7,
+                                  fontWeight: isMissedLogout
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                          ],
                         ),
                       ),
                     );
