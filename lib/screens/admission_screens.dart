@@ -2172,32 +2172,17 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                 ],
               ),
               if (isAdmin) ...[
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    if (status == 'active') ...[
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _setInstallmentPlan(totalFees - (_detail!['registrationAmount'] ?? 0)),
-                          icon: const Icon(Icons.calendar_month, color: Colors.white, size: 16),
-                          label: const Text('Set Installments', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.amber.shade700,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
-                        ),
-                      ),
-                    ],
-                    Builder(
-                      builder: (context) {
-                        final paid = _payments.where((p) => p['type'] != 'refund' && p['status'] != 'VOIDED').fold(0.0, (sum, p) => sum + (p['amount'] ?? 0));
-                        final refunded = _payments.where((p) => p['type'] == 'refund' && p['status'] != 'VOIDED').fold(0.0, (sum, p) => sum + (p['amount'] ?? 0));
-                        final maxRefund = paid - refunded;
-                        if (maxRefund > 0) {
-                          return Expanded(
-                            child: Padding(
-                              padding: EdgeInsets.only(left: (status == 'active') ? 8.0 : 0.0),
+                Builder(
+                  builder: (context) {
+                    final paid = _payments.where((p) => p['type'] != 'refund' && p['status'] != 'VOIDED').fold(0.0, (sum, p) => sum + (p['amount'] ?? 0));
+                    final refunded = _payments.where((p) => p['type'] == 'refund' && p['status'] != 'VOIDED').fold(0.0, (sum, p) => sum + (p['amount'] ?? 0));
+                    final maxRefund = paid - refunded;
+                    if (maxRefund > 0) {
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Row(
+                          children: [
+                            Expanded(
                               child: ElevatedButton.icon(
                                 onPressed: () => _refundAdmission(maxRefund),
                                 icon: const Icon(Icons.undo, color: Colors.white, size: 16),
@@ -2209,12 +2194,12 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                                 ),
                               ),
                             ),
-                          );
-                        }
-                        return const SizedBox();
-                      }
-                    ),
-                  ],
+                          ],
+                        ),
+                      );
+                    }
+                    return const SizedBox();
+                  }
                 ),
               ],
             ],
