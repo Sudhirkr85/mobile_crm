@@ -196,23 +196,28 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(12)),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E293B),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white.withOpacity(0.05)),
+              ),
+              child: Column(
                 children: [
-                  Column(
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      const Text('DAYS PRESENT', style: TextStyle(color: Colors.blueGrey, fontSize: 10, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 4),
-                      Text('${_selectedUserSummary['daysPresent'] ?? 0} Days', style: const TextStyle(color: Colors.green, fontSize: 16, fontWeight: FontWeight.bold)),
+                      _buildSummaryStatItem('PRESENT', '$_countPresent', Colors.green),
+                      _buildSummaryStatItem('LEAVE', '$_countLeave', Colors.orange),
+                      _buildSummaryStatItem('ABSENT', '$_countAbsent', Colors.redAccent),
                     ],
                   ),
-                  Column(
+                  const Divider(color: Colors.white10, height: 16, thickness: 1),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      const Text('TOTAL HOURS', style: TextStyle(color: Colors.blueGrey, fontSize: 10, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 4),
-                      Text('${_selectedUserSummary['totalHours'] ?? 0} hrs', style: const TextStyle(color: Colors.teal, fontSize: 16, fontWeight: FontWeight.bold)),
+                      _buildSummaryStatItem('WEEKOFF', '$_countWeekoff', Colors.indigoAccent),
+                      _buildSummaryStatItem('TOTAL HOURS', '${_selectedUserSummary['totalHours'] ?? 0} hrs', Colors.teal),
                     ],
                   ),
                 ],
@@ -435,6 +440,58 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
           ],
         );
       },
+    );
+  }
+
+  int get _countPresent {
+    return _userCalendarLogs.where((log) =>
+      log['specialStatus'] == null &&
+      (log['punchIn'] != null || log['punchOut'] != null)
+    ).length;
+  }
+
+  int get _countLeave {
+    return _userCalendarLogs.where((log) => log['specialStatus'] == 'LEAVE').length;
+  }
+
+  int get _countWeekoff {
+    return _userCalendarLogs.where((log) => log['specialStatus'] == 'WEEKOFF').length;
+  }
+
+  int get _countAbsent {
+    final today = DateTime.now();
+    final lastDayOfMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0);
+    final totalDays = lastDayOfMonth.day;
+
+    int absentCount = 0;
+    for (int day = 1; day <= totalDays; day++) {
+      final date = DateTime(_selectedMonth.year, _selectedMonth.month, day);
+      final isPast = date.isBefore(DateTime(today.year, today.month, today.day));
+      if (!isPast) continue;
+
+      final dateStr = '${_selectedMonth.year}-${_selectedMonth.month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
+      final hasRecord = _userCalendarLogs.any((log) => log['date'] == dateStr);
+      if (!hasRecord) {
+        absentCount++;
+      }
+    }
+    return absentCount;
+  }
+
+  Widget _buildSummaryStatItem(String label, String value, Color color) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(color: Colors.blueGrey, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5)
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(color: color, fontSize: 15, fontWeight: FontWeight.bold)
+        ),
+      ],
     );
   }
 }
