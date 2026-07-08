@@ -121,7 +121,7 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load admissions: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load admissions: ${ApiService.getReadableError(e)}')));
     } finally {
       setState(() {
         _isLoading = false;
@@ -752,7 +752,7 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
                         }
                       } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to record payment: $e')));
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to record payment: ${ApiService.getReadableError(e)}')));
                       }
                     },
                     child: const Text('Save Payment', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -1006,7 +1006,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load admission detail: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load admission detail: ${ApiService.getReadableError(e)}')));
     } finally {
       setState(() {
         _isLoading = false;
@@ -1458,7 +1458,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payment voided successfully!'), backgroundColor: Colors.green));
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Void failed: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Void failed: ${ApiService.getReadableError(e)}')));
     }
   }
 
@@ -1495,7 +1495,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payment refunded successfully!'), backgroundColor: Colors.green));
                   }
                 } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Refund failed: $e')));
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Refund failed: ${ApiService.getReadableError(e)}')));
                 }
               },
               child: const Text('Refund'),
@@ -2067,7 +2067,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Student dropped successfully!'), backgroundColor: Colors.redAccent));
                       }
                     } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to drop student: $e')));
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to drop student: ${ApiService.getReadableError(e)}')));
                     } finally {
                       setState(() {
                         _isLoading = false;

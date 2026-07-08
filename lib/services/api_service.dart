@@ -131,4 +131,32 @@ class ApiService {
   Future<Response> deleteRequest(String path) async {
     return await _dio.delete(path);
   }
+
+  static String getReadableError(dynamic error) {
+    if (error is DioException) {
+      if (error.type == DioExceptionType.connectionTimeout ||
+          error.type == DioExceptionType.sendTimeout ||
+          error.type == DioExceptionType.receiveTimeout) {
+        return 'Connection timeout. Please check your internet connection.';
+      }
+      if (error.type == DioExceptionType.connectionError) {
+        return 'Server connection error. Please check your internet or if the server is starting up.';
+      }
+      if (error.response != null) {
+        final data = error.response!.data;
+        if (data is Map && data['message'] != null) {
+          return data['message'].toString();
+        }
+        return 'Server error (Status: ${error.response!.statusCode})';
+      }
+      if (error.message != null && error.message!.contains('SocketException')) {
+        return 'No internet connection or server is offline.';
+      }
+    }
+    final errStr = error.toString();
+    if (errStr.contains('SocketException') || errStr.contains('Failed host lookup')) {
+      return 'No internet connection or server is unreachable. Please try again.';
+    }
+    return errStr;
+  }
 }

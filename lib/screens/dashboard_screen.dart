@@ -70,7 +70,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load dashboard: $e')),
+        SnackBar(content: Text('Failed to load dashboard: ${ApiService.getReadableError(e)}')),
       );
     } finally {
       setState(() {
@@ -178,14 +178,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         await _loadDashboardData();
       }
     } catch (e) {
-      String errMsg = e.toString();
-      if (e is DioException) {
-        final data = e.response?.data;
-        if (data is Map && data['message'] != null) {
-          errMsg = data['message'];
-        }
-      }
-      _showErrorDialog(errMsg);
+      _showErrorDialog(ApiService.getReadableError(e));
     } finally {
       setState(() {
         _isPunching = false;

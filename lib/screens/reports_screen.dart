@@ -73,7 +73,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load summary reports: $e')),
+          SnackBar(content: Text('Failed to load summary reports: ${ApiService.getReadableError(e)}')),
         );
       }
     } finally {

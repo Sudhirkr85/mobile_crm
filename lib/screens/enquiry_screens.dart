@@ -147,7 +147,7 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load enquiries: $e')),
+        SnackBar(content: Text('Failed to load enquiries: ${ApiService.getReadableError(e)}')),
       );
     } finally {
       setState(() {
@@ -1395,7 +1395,7 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load lead details: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load lead details: ${ApiService.getReadableError(e)}')));
     } finally {
       setState(() {
         _isLoading = false;

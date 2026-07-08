@@ -83,7 +83,7 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load employee details: $e')),
+        SnackBar(content: Text('Failed to load employee details: ${ApiService.getReadableError(e)}')),
       );
     } finally {
       setState(() {

@@ -106,7 +106,7 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load payments: $e')),
+          SnackBar(content: Text('Failed to load payments: ${ApiService.getReadableError(e)}')),
         );
       }
     } finally {

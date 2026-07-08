@@ -48,7 +48,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       await _checkCurrentLocation();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load data: $e')),
+        SnackBar(content: Text('Failed to load data: ${ApiService.getReadableError(e)}')),
       );
     } finally {
       setState(() {
