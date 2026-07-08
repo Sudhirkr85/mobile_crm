@@ -316,32 +316,57 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                                      ),
                                      const Divider(color: Colors.white10, height: 20),
                                      Row(
-                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                       children: [
-                                         Text(
-                                           mobile,
-                                           style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 13, fontWeight: FontWeight.w500),
-                                         ),
-                                         if (mobile.isNotEmpty)
-                                           Row(
-                                             children: [
-                                               IconButton(
-                                                 icon: const Icon(Icons.phone, color: Colors.green, size: 18),
-                                                 padding: EdgeInsets.zero,
-                                                 constraints: const BoxConstraints(),
-                                                 onPressed: () => _makeCall(mobile),
-                                               ),
-                                               const SizedBox(width: 16),
-                                               IconButton(
-                                                 icon: const Icon(Icons.chat_bubble_outline, color: Color(0xFF25D366), size: 18),
-                                                 padding: EdgeInsets.zero,
-                                                 constraints: const BoxConstraints(),
-                                                 onPressed: () => _sendWhatsApp(mobile),
-                                               ),
-                                             ],
-                                           ),
-                                       ],
-                                     ),
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            mobile,
+                                            style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 12, fontWeight: FontWeight.w500),
+                                          ),
+                                          Row(
+                                            children: [
+                                              if (mobile.isNotEmpty) ...[
+                                                IconButton(
+                                                  icon: const Icon(Icons.phone, color: Colors.green, size: 16),
+                                                  padding: EdgeInsets.zero,
+                                                  constraints: const BoxConstraints(),
+                                                  onPressed: () => _makeCall(mobile),
+                                                ),
+                                                const SizedBox(width: 12),
+                                                IconButton(
+                                                  icon: const Icon(Icons.chat_bubble_outline, color: Color(0xFF25D366), size: 16),
+                                                  padding: EdgeInsets.zero,
+                                                  constraints: const BoxConstraints(),
+                                                  onPressed: () => _sendWhatsApp(mobile),
+                                                ),
+                                                const SizedBox(width: 12),
+                                              ],
+                                              IconButton(
+                                                icon: const Icon(Icons.visibility, color: Colors.blueAccent, size: 16),
+                                                padding: EdgeInsets.zero,
+                                                constraints: const BoxConstraints(),
+                                                onPressed: () => Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(builder: (_) => AdmissionDetailScreen(admissionId: student['_id'])),
+                                                ).then((_) => _loadAdmissions(isFirstLoad: true)),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              IconButton(
+                                                icon: const Icon(Icons.add_circle_outline, color: Colors.green, size: 16),
+                                                padding: EdgeInsets.zero,
+                                                constraints: const BoxConstraints(),
+                                                onPressed: () => _showAddPaymentFromList(student),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              IconButton(
+                                                icon: const Icon(Icons.receipt_long, color: Colors.blue, size: 16),
+                                                padding: EdgeInsets.zero,
+                                                constraints: const BoxConstraints(),
+                                                onPressed: () => _showPaymentHistoryFromList(student),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
                                    ],
                                  ),
                                ),
@@ -406,6 +431,526 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> _showAddPaymentFromList(dynamic student) async {
+    final remainingAmount = ((student['remainingAmount'] ?? student['pendingAmount'] ?? 0) as num).toDouble();
+    if (remainingAmount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('This student has no pending dues.', style: TextStyle(color: Colors.white)), backgroundColor: Colors.amber),
+      );
+      return;
+    }
+
+    final amountController = TextEditingController();
+    final noteController = TextEditingController();
+    String paymentType = 'installment';
+    String paymentMode = 'CASH';
+    DateTime paymentDate = DateTime.now();
+    final List<String> modes = ['CASH', 'UPI', 'CARD', 'ONLINE', 'CHEQUE', 'BANK_TRANSFER'];
+
+    final installments = student['installments'] as List<dynamic>? ?? [];
+    final pendingInstallments = installments.where((inst) => inst['status'] == 'PENDING').toList();
+
+    String getModeLabel(String mode) {
+      switch (mode) {
+        case 'CASH': return '💵 Cash';
+        case 'UPI': return '📱 UPI';
+        case 'CARD': return '💳 Card';
+        case 'ONLINE': return '🏦 Online Transfer';
+        case 'CHEQUE': return '📋 Cheque';
+        case 'BANK_TRANSFER': return '🏛️ Bank Transfer';
+        default: return mode;
+      }
+    }
+
+    await showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Record Payment',
+      transitionDuration: const Duration(milliseconds: 250),
+      pageBuilder: (context, anim1, anim2) {
+        return ScaleTransition(
+          scale: CurvedAnimation(parent: anim1, curve: Curves.easeOut),
+          child: StatefulBuilder(
+            builder: (context, setDialogState) {
+              return AlertDialog(
+                backgroundColor: const Color(0xFF1E293B),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                title: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
+                      child: const Icon(Icons.add_card, color: Colors.white, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Add Payment', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                          Text(student['name'] ?? 'Record new fee payment', style: const TextStyle(color: Colors.blueGrey, fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                content: SizedBox(
+                  width: double.maxFinite,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Balances box
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0F172A),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                children: [
+                                  const Text('TOTAL', style: TextStyle(color: Colors.blueGrey, fontSize: 10)),
+                                  const SizedBox(height: 2),
+                                  Text('₹${student['totalFees'] ?? 0}', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                              Column(
+                                children: [
+                                  const Text('PAID', style: TextStyle(color: Colors.blueGrey, fontSize: 10)),
+                                  const SizedBox(height: 2),
+                                  Text('₹${student['totalPaid'] ?? 0}', style: const TextStyle(color: Colors.green, fontSize: 13, fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                              Column(
+                                children: [
+                                  const Text('BALANCE', style: TextStyle(color: Colors.blueGrey, fontSize: 10)),
+                                  const SizedBox(height: 2),
+                                  Text('₹${remainingAmount.toStringAsFixed(0)}', style: const TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Installment schedule
+                        if (pendingInstallments.isNotEmpty) ...[
+                          const Text('INSTALLMENT SCHEDULE', style: TextStyle(color: Colors.blueGrey, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                          const SizedBox(height: 8),
+                          ...pendingInstallments.asMap().entries.map((entry) {
+                            final idx = entry.key;
+                            final inst = entry.value;
+                            final amt = inst['amount'] ?? 0;
+                            final dueDateStr = inst['dueDate'] != null 
+                                ? DateFormat('dd/MM/yyyy').format(DateTime.parse(inst['dueDate'].toString()))
+                                : '--/--/----';
+
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 6),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.02),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.white.withOpacity(0.05)),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      'Installment ${idx + 1}: ₹$amt (Due: $dueDateStr)',
+                                      style: const TextStyle(color: Colors.white70, fontSize: 11),
+                                    ),
+                                  ),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.blue.shade700,
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                      minimumSize: Size.zero,
+                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                    onPressed: () {
+                                      setDialogState(() {
+                                        amountController.text = amt.toString();
+                                      });
+                                    },
+                                    child: const Text('Pay This', style: TextStyle(color: Colors.white, fontSize: 10)),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                          const SizedBox(height: 16),
+                        ],
+
+                        // Amount input
+                        TextField(
+                          controller: amountController,
+                          keyboardType: TextInputType.number,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: const InputDecoration(
+                            labelText: 'Amount (₹) *',
+                            labelStyle: TextStyle(color: Colors.blueGrey),
+                            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.blueGrey)),
+                            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.green)),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Payment Type dropdown
+                        DropdownButtonFormField<String>(
+                          value: paymentType,
+                          dropdownColor: const Color(0xFF1E293B),
+                          style: const TextStyle(color: Colors.white),
+                          decoration: const InputDecoration(
+                            labelText: 'Payment Type *',
+                            labelStyle: TextStyle(color: Colors.blueGrey),
+                            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.blueGrey)),
+                          ),
+                          items: const [
+                            DropdownMenuItem(value: 'installment', child: Text('Installment Payment')),
+                            DropdownMenuItem(value: 'full', child: Text('Full Payment')),
+                            DropdownMenuItem(value: 'admission', child: Text('Admission/Registration Fee')),
+                          ],
+                          onChanged: (val) {
+                            if (val != null) {
+                              setDialogState(() {
+                                paymentType = val;
+                                if (paymentType == 'full') {
+                                  amountController.text = remainingAmount.toStringAsFixed(0);
+                                }
+                              });
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Payment Mode dropdown
+                        DropdownButtonFormField<String>(
+                          value: paymentMode,
+                          dropdownColor: const Color(0xFF1E293B),
+                          style: const TextStyle(color: Colors.white),
+                          decoration: const InputDecoration(
+                            labelText: 'Payment Mode *',
+                            labelStyle: TextStyle(color: Colors.blueGrey),
+                            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.blueGrey)),
+                          ),
+                          items: modes.map((m) {
+                            return DropdownMenuItem(value: m, child: Text(getModeLabel(m)));
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) {
+                              setDialogState(() {
+                                paymentMode = val;
+                              });
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Date picker
+                        InkWell(
+                          onTap: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: paymentDate,
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime(2100),
+                            );
+                            if (picked != null) {
+                              setDialogState(() {
+                                paymentDate = picked;
+                              });
+                            }
+                          },
+                          child: InputDecorator(
+                            decoration: const InputDecoration(
+                              labelText: 'Payment Date *',
+                              labelStyle: TextStyle(color: Colors.blueGrey),
+                              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.blueGrey)),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  DateFormat('dd MMM yyyy').format(paymentDate),
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                                const Icon(Icons.calendar_today, color: Colors.blueGrey, size: 16),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Note input
+                        TextField(
+                          controller: noteController,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: const InputDecoration(
+                            labelText: 'Note',
+                            labelStyle: TextStyle(color: Colors.blueGrey),
+                            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.blueGrey)),
+                            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.green)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel', style: TextStyle(color: Colors.blueGrey)),
+                  ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                    onPressed: () async {
+                      final amountText = amountController.text.trim();
+                      if (amountText.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter amount')));
+                        return;
+                      }
+                      final amount = double.tryParse(amountText) ?? 0.0;
+                      if (amount <= 0) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Amount must be greater than zero')));
+                        return;
+                      }
+
+                      if (paymentType == 'full' && (amount - remainingAmount).abs() > 0.01) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('For Full Payment type, amount must equal remaining balance exactly')));
+                        return;
+                      }
+
+                      final apiService = Provider.of<ApiService>(context, listen: false);
+                      final df = DateFormat('yyyy-MM-dd');
+                      final data = {
+                        'amount': amount,
+                        'paymentType': paymentType.toUpperCase(),
+                        'paymentMode': paymentMode,
+                        'paymentDate': df.format(paymentDate),
+                        'note': noteController.text.trim(),
+                      };
+
+                      try {
+                        final res = await apiService.postRequest('/admissions/${student['_id']}/payments', data: data);
+                        if (res.statusCode == 200 || res.statusCode == 210) {
+                          if (context.mounted) Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Payment recorded successfully!'), backgroundColor: Colors.green),
+                          );
+                          _loadAdmissions(isFirstLoad: true);
+                        } else {
+                          String msg = res.data?['message'] ?? 'Failed to record payment';
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+                        }
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to record payment: $e')));
+                      }
+                    },
+                    child: const Text('Save Payment', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showPaymentHistoryFromList(dynamic student) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    List<dynamic> payments = [];
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final res = await apiService.getRequest('/admissions/${student['_id']}/payments');
+      if (res.statusCode == 200 && res.data != null) {
+        final rawData = res.data['data'];
+        if (rawData is Map && rawData['payments'] != null) {
+          payments = rawData['payments'] as List<dynamic>? ?? [];
+        } else if (rawData is List) {
+          payments = rawData;
+        } else {
+          payments = res.data['data'] as List<dynamic>? ?? [];
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to load payment history: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+
+    final totalPaid = ((student['totalPaid'] ?? 0) as num).toDouble();
+    final remainingAmount = ((student['remainingAmount'] ?? student['pendingAmount'] ?? 0) as num).toDouble();
+
+    if (!mounted) return;
+
+    await showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Payment History',
+      transitionDuration: const Duration(milliseconds: 250),
+      pageBuilder: (context, anim1, anim2) {
+        return ScaleTransition(
+          scale: CurvedAnimation(parent: anim1, curve: Curves.easeOut),
+          child: AlertDialog(
+            backgroundColor: const Color(0xFF1E293B),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(color: Colors.blueAccent, shape: BoxShape.circle),
+                  child: const Icon(Icons.history, color: Colors.white, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Payment History', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text(student['name'] ?? '', style: const TextStyle(color: Colors.blueGrey, fontSize: 12)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Balances box
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0F172A),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            children: [
+                              const Text('TOTAL', style: TextStyle(color: Colors.blueGrey, fontSize: 10)),
+                              const SizedBox(height: 2),
+                              Text('₹${student['totalFees'] ?? 0}', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                          Column(
+                            children: [
+                              const Text('PAID', style: TextStyle(color: Colors.blueGrey, fontSize: 10)),
+                              const SizedBox(height: 2),
+                              Text('₹${totalPaid.toStringAsFixed(0)}', style: const TextStyle(color: Colors.green, fontSize: 13, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                          Column(
+                            children: [
+                              const Text('REMAINING', style: TextStyle(color: Colors.blueGrey, fontSize: 10)),
+                              const SizedBox(height: 2),
+                              Text('₹${remainingAmount.toStringAsFixed(0)}', style: const TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    if (payments.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 24),
+                        child: Text('No payments recorded yet.', style: TextStyle(color: Colors.blueGrey)),
+                      )
+                    else
+                      ...payments.map((pay) {
+                        final amt = pay['amount'] ?? 0;
+                        final mode = pay['paymentMode'] ?? 'N/A';
+                        final type = pay['paymentType'] ?? 'INSTALLMENT';
+                        final rawDate = pay['paymentDate'] ?? pay['createdAt'] ?? '';
+                        final formattedDate = rawDate.isNotEmpty
+                            ? DateFormat('dd MMM yyyy').format(DateTime.parse(rawDate.toString()))
+                            : 'N/A';
+                        final note = pay['note'] ?? '';
+
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.02),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.white.withOpacity(0.05)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    '₹$amt',
+                                    style: const TextStyle(color: Colors.green, fontSize: 15, fontWeight: FontWeight.bold),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.withOpacity(0.15),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      type.toString().toUpperCase(),
+                                      style: const TextStyle(color: Colors.blueAccent, fontSize: 8, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    '$formattedDate • $mode',
+                                    style: const TextStyle(color: Colors.blueGrey, fontSize: 11),
+                                  ),
+                                ],
+                              ),
+                              if (note.isNotEmpty) ...[
+                                const SizedBox(height: 6),
+                                Text(
+                                  note,
+                                  style: const TextStyle(color: Colors.white70, fontSize: 11, fontStyle: FontStyle.italic),
+                                ),
+                              ],
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Close', style: TextStyle(color: Colors.blueAccent)),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
