@@ -961,7 +961,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                 ),
               ),
             ),
-            if (status == 'Active') ...[
+            if (status == 'Active' && isAdmin) ...[
               const SizedBox(width: 12),
               ElevatedButton.icon(
                 onPressed: _handleDropStudent,
@@ -1175,7 +1175,7 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
   final _formKey = GlobalKey<FormState>();
   final _totalFeesController = TextEditingController();
   final _regAmountController = TextEditingController();
-  final _batchController = TextEditingController();
+
   bool _isLoading = false;
 
   String _paymentType = 'ONE_TIME';
@@ -1198,7 +1198,7 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
     _regAmountController.removeListener(_onAmountChanged);
     _totalFeesController.dispose();
     _regAmountController.dispose();
-    _batchController.dispose();
+
     for (var row in _installmentRows) {
       row.dispose();
     }
@@ -1517,9 +1517,7 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
         'paymentType': _paymentType,
       };
 
-      if (_batchController.text.trim().isNotEmpty) {
-        data['batch'] = _batchController.text.trim();
-      }
+
 
       if (_paymentType == 'ONE_TIME') {
         data['paymentMethod'] = _paymentMode;
@@ -1578,15 +1576,7 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
             children: [
               Text('Convert lead "${widget.studentName}" into a registered admission.', style: const TextStyle(color: Colors.blueGrey)),
               const SizedBox(height: 24),
-              TextFormField(
-                controller: _batchController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Batch Name / Time (Optional)',
-                  labelStyle: TextStyle(color: Colors.blueGrey),
-                ),
-              ),
-              const SizedBox(height: 16),
+
               DropdownButtonFormField<String>(
                 value: _paymentType,
                 dropdownColor: const Color(0xFF1E293B),

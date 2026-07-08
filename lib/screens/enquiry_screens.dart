@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:dio/dio.dart';
@@ -56,10 +57,18 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
     }
   }
 
-  Future<void> _sendWhatsApp(String mobile) async {
+  Future<void> _sendWhatsApp(String mobile, String name, String course) async {
     final cleanMobile = mobile.replaceAll(RegExp(r'\D'), '');
     final formattedMobile = cleanMobile.length == 10 ? '91$cleanMobile' : cleanMobile;
-    final Uri uri = Uri.parse("https://wa.me/$formattedMobile");
+    final apiService = Provider.of<ApiService>(context, listen: false);
+    final counselorName = apiService.userName ?? 'representative';
+
+    final message = "Hi $name,\n\n"
+        "This is $counselorName from SSSAM Academy, Gurgaon.\n\n"
+        "Regarding your $course enquiry, please let me know a convenient time to connect.";
+
+    final encodedMessage = Uri.encodeComponent(message);
+    final Uri uri = Uri.parse("https://wa.me/$formattedMobile?text=$encodedMessage");
     try {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (e) {
@@ -486,223 +495,299 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
     final referenceNameController = TextEditingController();
     final referenceContactController = TextEditingController();
     final walkInBroughtByController = TextEditingController();
-    final notesController = TextEditingController();
+
+    final addFormKey = GlobalKey<FormState>();
 
     String? selectedCourse;
     String? selectedSource;
     bool showCustomCourse = false;
     bool showReferralFields = false;
     bool showWalkInField = false;
+    bool isSubmitting = false;
 
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
               backgroundColor: const Color(0xFF1E293B),
-              title: const Text('Add New Lead', style: TextStyle(color: Colors.white)),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: nameController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(labelText: 'Name *', labelStyle: TextStyle(color: Colors.blueGrey)),
-                    ),
-                    TextField(
-                      controller: mobileController,
-                      keyboardType: TextInputType.phone,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(labelText: 'Mobile *', labelStyle: TextStyle(color: Colors.blueGrey)),
-                    ),
-                    TextField(
-                      controller: emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(labelText: 'Email', labelStyle: TextStyle(color: Colors.blueGrey)),
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<String>(
-                      value: selectedCourse,
-                      dropdownColor: const Color(0xFF1E293B),
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        labelText: 'Course Interested *',
-                        labelStyle: TextStyle(color: Colors.blueGrey),
-                        filled: true,
-                        fillColor: Color(0xFF0F172A),
-                      ),
-                      items: const [
-                        DropdownMenuItem(value: 'Data Analytics', child: Text('Data Analytics')),
-                        DropdownMenuItem(value: 'Data Science', child: Text('Data Science')),
-                        DropdownMenuItem(value: 'Basic Computer', child: Text('Basic Computer')),
-                        DropdownMenuItem(value: 'Python Full Stack', child: Text('Python Full Stack')),
-                        DropdownMenuItem(value: 'Java Full Stack', child: Text('Java Full Stack')),
-                        DropdownMenuItem(value: 'MERN Stack', child: Text('MERN Stack')),
-                        DropdownMenuItem(value: 'Ethical Hacking', child: Text('Ethical Hacking')),
-                        DropdownMenuItem(value: 'Web Development', child: Text('Web Development')),
-                        DropdownMenuItem(value: 'Digital Marketing', child: Text('Digital Marketing')),
-                        DropdownMenuItem(value: 'Other', child: Text('Other')),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: const Row(
+                children: [
+                  Icon(Icons.person_add_alt_1, color: Colors.blueAccent),
+                  SizedBox(width: 10),
+                  Text('Add New Lead', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                ],
+              ),
+              content: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.9,
+                child: SingleChildScrollView(
+                  child: Form(
+                    key: addFormKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextFormField(
+                          controller: nameController,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: const InputDecoration(
+                            labelText: 'Name *',
+                            labelStyle: TextStyle(color: Colors.blueGrey),
+                            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.blueGrey)),
+                            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.blueAccent)),
+                          ),
+                          validator: (val) => val == null || val.trim().isEmpty ? 'Name is required' : null,
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: mobileController,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            MobileNumberFormatter(),
+                          ],
+                          style: const TextStyle(color: Colors.white),
+                          decoration: const InputDecoration(
+                            labelText: 'Mobile *',
+                            hintText: 'XXXXX XXXXX',
+                            hintStyle: TextStyle(color: Colors.white24),
+                            labelStyle: TextStyle(color: Colors.blueGrey),
+                            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.blueGrey)),
+                            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.blueAccent)),
+                          ),
+                          validator: (val) {
+                            if (val == null || val.trim().isEmpty) return 'Mobile is required';
+                            final clean = val.replaceAll(' ', '');
+                            if (clean.length != 10) return 'Enter exactly 10 digits';
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: const InputDecoration(
+                            labelText: 'Email (Optional)',
+                            labelStyle: TextStyle(color: Colors.blueGrey),
+                            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.blueGrey)),
+                            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.blueAccent)),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<String>(
+                          value: selectedCourse,
+                          dropdownColor: const Color(0xFF1E293B),
+                          style: const TextStyle(color: Colors.white),
+                          decoration: const InputDecoration(
+                            labelText: 'Course Interested *',
+                            labelStyle: TextStyle(color: Colors.blueGrey),
+                            filled: true,
+                            fillColor: Color(0xFF0F172A),
+                            enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.blueGrey)),
+                            focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.blueAccent)),
+                          ),
+                          items: const [
+                            DropdownMenuItem(value: 'Data Analytics', child: Text('Data Analytics')),
+                            DropdownMenuItem(value: 'Data Science', child: Text('Data Science')),
+                            DropdownMenuItem(value: 'Basic Computer', child: Text('Basic Computer')),
+                            DropdownMenuItem(value: 'Python Full Stack', child: Text('Python Full Stack')),
+                            DropdownMenuItem(value: 'Java Full Stack', child: Text('Java Full Stack')),
+                            DropdownMenuItem(value: 'MERN Stack', child: Text('MERN Stack')),
+                            DropdownMenuItem(value: 'Ethical Hacking', child: Text('Ethical Hacking')),
+                            DropdownMenuItem(value: 'Web Development', child: Text('Web Development')),
+                            DropdownMenuItem(value: 'Digital Marketing', child: Text('Digital Marketing')),
+                            DropdownMenuItem(value: 'Other', child: Text('Other')),
+                          ],
+                          onChanged: (val) {
+                            setState(() {
+                              selectedCourse = val;
+                              showCustomCourse = val == 'Other';
+                            });
+                          },
+                          validator: (val) => val == null || val.isEmpty ? 'Course is required' : null,
+                        ),
+                        if (showCustomCourse) ...[
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: customCourseController,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: const InputDecoration(
+                              labelText: 'Custom Course Name *',
+                              labelStyle: TextStyle(color: Colors.blueGrey),
+                              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.blueGrey)),
+                              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.blueAccent)),
+                            ),
+                            validator: (val) => showCustomCourse && (val == null || val.trim().isEmpty) ? 'Custom Course name is required' : null,
+                          ),
+                        ],
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<String>(
+                          value: selectedSource,
+                          dropdownColor: const Color(0xFF1E293B),
+                          style: const TextStyle(color: Colors.white),
+                          decoration: const InputDecoration(
+                            labelText: 'Source *',
+                            labelStyle: TextStyle(color: Colors.blueGrey),
+                            filled: true,
+                            fillColor: Color(0xFF0F172A),
+                            enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.blueGrey)),
+                            focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.blueAccent)),
+                          ),
+                          items: const [
+                            DropdownMenuItem(value: 'walk_in', child: Text('Walk In')),
+                            DropdownMenuItem(value: 'phone_call', child: Text('Phone Call')),
+                            DropdownMenuItem(value: 'website', child: Text('Website')),
+                            DropdownMenuItem(value: 'referral', child: Text('Referral')),
+                            DropdownMenuItem(value: 'social_media', child: Text('Social Media')),
+                            DropdownMenuItem(value: 'advertisement', child: Text('Advertisement')),
+                            DropdownMenuItem(value: 'other', child: Text('Other')),
+                          ],
+                          onChanged: (val) {
+                            setState(() {
+                              selectedSource = val;
+                              showReferralFields = val == 'referral';
+                              showWalkInField = val == 'walk_in';
+                            });
+                          },
+                          validator: (val) => val == null || val.isEmpty ? 'Source is required' : null,
+                        ),
+                        if (showReferralFields) ...[
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: referenceNameController,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: const InputDecoration(
+                              labelText: 'Reference Name *',
+                              labelStyle: TextStyle(color: Colors.blueGrey),
+                              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.blueGrey)),
+                              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.blueAccent)),
+                            ),
+                            validator: (val) => showReferralFields && (val == null || val.trim().isEmpty) ? 'Reference Name is required' : null,
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: referenceContactController,
+                            keyboardType: TextInputType.phone,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: const InputDecoration(
+                              labelText: 'Reference Contact *',
+                              labelStyle: TextStyle(color: Colors.blueGrey),
+                              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.blueGrey)),
+                              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.blueAccent)),
+                            ),
+                            validator: (val) => showReferralFields && (val == null || val.trim().isEmpty) ? 'Reference Contact is required' : null,
+                          ),
+                        ],
+                        if (showWalkInField) ...[
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: walkInBroughtByController,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: const InputDecoration(
+                              labelText: 'Brought By * (Who brought this student)',
+                              labelStyle: TextStyle(color: Colors.blueGrey),
+                              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.blueGrey)),
+                              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.blueAccent)),
+                            ),
+                            validator: (val) => showWalkInField && (val == null || val.trim().isEmpty) ? 'Brought By is required' : null,
+                          ),
+                        ],
                       ],
-                      onChanged: (val) {
-                        setState(() {
-                          selectedCourse = val;
-                          showCustomCourse = val == 'Other';
-                        });
-                      },
                     ),
-                    if (showCustomCourse) ...[
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: customCourseController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: const InputDecoration(labelText: 'Custom Course Name *', labelStyle: TextStyle(color: Colors.blueGrey)),
-                      ),
-                    ],
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<String>(
-                      value: selectedSource,
-                      dropdownColor: const Color(0xFF1E293B),
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        labelText: 'Source *',
-                        labelStyle: TextStyle(color: Colors.blueGrey),
-                        filled: true,
-                        fillColor: Color(0xFF0F172A),
-                      ),
-                      items: const [
-                        DropdownMenuItem(value: 'walk_in', child: Text('Walk In')),
-                        DropdownMenuItem(value: 'phone_call', child: Text('Phone Call')),
-                        DropdownMenuItem(value: 'website', child: Text('Website')),
-                        DropdownMenuItem(value: 'referral', child: Text('Referral')),
-                        DropdownMenuItem(value: 'social_media', child: Text('Social Media')),
-                        DropdownMenuItem(value: 'advertisement', child: Text('Advertisement')),
-                        DropdownMenuItem(value: 'other', child: Text('Other')),
-                      ],
-                      onChanged: (val) {
-                        setState(() {
-                          selectedSource = val;
-                          showReferralFields = val == 'referral';
-                          showWalkInField = val == 'walk_in';
-                        });
-                      },
-                    ),
-                    if (showReferralFields) ...[
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: referenceNameController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: const InputDecoration(labelText: 'Reference Name *', labelStyle: TextStyle(color: Colors.blueGrey)),
-                      ),
-                      TextField(
-                        controller: referenceContactController,
-                        keyboardType: TextInputType.phone,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: const InputDecoration(labelText: 'Reference Contact *', labelStyle: TextStyle(color: Colors.blueGrey)),
-                      ),
-                    ],
-                    if (showWalkInField) ...[
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: walkInBroughtByController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: const InputDecoration(labelText: 'Brought By * (Who brought this student)', labelStyle: TextStyle(color: Colors.blueGrey)),
-                      ),
-                    ],
-                    TextField(
-                      controller: notesController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(labelText: 'Initial Notes', labelStyle: TextStyle(color: Colors.blueGrey)),
-                    ),
-                  ],
+                  ),
                 ),
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: isSubmitting ? null : () => Navigator.pop(context),
                   child: const Text('Cancel', style: TextStyle(color: Colors.redAccent)),
                 ),
                 ElevatedButton(
-                  onPressed: () async {
-                    if (nameController.text.trim().isEmpty || mobileController.text.trim().isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Name and Mobile number are required.')),
-                      );
-                      return;
-                    }
-                    final finalCourse = selectedCourse == 'Other' ? customCourseController.text.trim() : selectedCourse;
-                    if (finalCourse == null || finalCourse.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Course is required.')),
-                      );
-                      return;
-                    }
-                    if (selectedSource == null || selectedSource!.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Source is required.')),
-                      );
-                      return;
-                    }
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          if (!addFormKey.currentState!.validate()) {
+                            return;
+                          }
 
-                    final dataPayload = <String, dynamic>{
-                      'name': nameController.text.trim(),
-                      'mobile': mobileController.text.trim(),
-                      'email': emailController.text.trim(),
-                      'course': finalCourse,
-                      'source': selectedSource,
-                      'notes': notesController.text.trim(),
-                    };
+                          setState(() {
+                            isSubmitting = true;
+                          });
 
-                    if (selectedSource == 'referral') {
-                      dataPayload['referenceName'] = referenceNameController.text.trim();
-                      dataPayload['referenceContact'] = referenceContactController.text.trim();
-                    } else if (selectedSource == 'walk_in') {
-                      dataPayload['walkInBroughtBy'] = walkInBroughtByController.text.trim();
-                    }
+                          final finalCourse = selectedCourse == 'Other' ? customCourseController.text.trim() : selectedCourse;
+                          final cleanMobile = mobileController.text.replaceAll(' ', '');
 
-                    try {
-                      final apiService = Provider.of<ApiService>(context, listen: false);
-                      final res = await apiService.postRequest('/enquiries', data: dataPayload);
-                      if (res.statusCode == 201 || res.statusCode == 200) {
-                        Navigator.pop(context);
-                        _loadEnquiries(isFirstLoad: true);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Lead added successfully'), backgroundColor: Colors.green),
-                        );
-                      }
-                    } catch (e) {
-                      if (e is DioException && e.response?.statusCode == 409) {
-                        final errorData = e.response?.data;
-                        final existing = errorData?['errors']?['existingEnquiry'];
-                        // Close the add dialog first
-                        Navigator.pop(context);
-                        if (existing != null) {
-                          // Show rich duplicate dialog like web
-                          _showDuplicateDialog(existing, nameController.text.trim(), mobileController.text.trim());
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(errorData?['message'] ?? 'Student already registered with this mobile number.'),
-                              backgroundColor: Colors.orange,
-                            ),
-                          );
-                        }
-                      } else {
-                        final errMsg = e is DioException
-                            ? (e.response?.data?['message'] as String? ?? e.message ?? 'Unknown error')
-                            : e.toString();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Failed to add lead: $errMsg'),
-                            backgroundColor: Colors.redAccent,
-                          ),
-                        );
-                      }
-                    }
-                  },
-                  child: const Text('Save'),
+                          final dataPayload = <String, dynamic>{
+                            'name': nameController.text.trim(),
+                            'mobile': cleanMobile,
+                            'email': emailController.text.trim().isEmpty ? null : emailController.text.trim(),
+                            'course': finalCourse,
+                            'source': selectedSource,
+                            'notes': '',
+                          };
+
+                          if (selectedSource == 'referral') {
+                            dataPayload['referenceName'] = referenceNameController.text.trim();
+                            dataPayload['referenceContact'] = referenceContactController.text.trim();
+                          } else if (selectedSource == 'walk_in') {
+                            dataPayload['walkInBroughtBy'] = walkInBroughtByController.text.trim();
+                          }
+
+                          try {
+                            final apiService = Provider.of<ApiService>(context, listen: false);
+                            final res = await apiService.postRequest('/enquiries', data: dataPayload);
+                            if (res.statusCode == 201 || res.statusCode == 200) {
+                              Navigator.pop(context);
+                              _loadEnquiries(isFirstLoad: true);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Lead added successfully'), backgroundColor: Colors.green),
+                              );
+                            }
+                          } catch (e) {
+                            setState(() {
+                              isSubmitting = false;
+                            });
+                            if (e is DioException && e.response?.statusCode == 409) {
+                              final errorData = e.response?.data;
+                              final existing = errorData?['errors']?['existingEnquiry'];
+                              Navigator.pop(context);
+                              if (existing != null) {
+                                _showDuplicateDialog(existing, nameController.text.trim(), cleanMobile);
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(errorData?['message'] ?? 'Student already registered with this mobile number.'),
+                                    backgroundColor: Colors.orange,
+                                  ),
+                                );
+                              }
+                            } else {
+                              final errMsg = e is DioException
+                                  ? (e.response?.data?['message'] as String? ?? e.message ?? 'Unknown error')
+                                  : e.toString();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Failed to add lead: $errMsg'),
+                                  backgroundColor: Colors.redAccent,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Text('Save', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 )
               ],
             );
@@ -1246,7 +1331,7 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                                                  icon: const Icon(Icons.chat_bubble_outline, color: Color(0xFF25D366), size: 18),
                                                  padding: EdgeInsets.zero,
                                                  constraints: const BoxConstraints(),
-                                                 onPressed: () => _sendWhatsApp(mobile),
+                                                 onPressed: () => _sendWhatsApp(mobile, lead['name'] ?? 'Student', course),
                                                ),
                                              ],
                                            ),
@@ -1332,7 +1417,18 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
   Future<void> _sendWhatsApp(String mobile) async {
     final cleanMobile = mobile.replaceAll(RegExp(r'\D'), '');
     final formattedMobile = cleanMobile.length == 10 ? '91$cleanMobile' : cleanMobile;
-    final Uri uri = Uri.parse("https://wa.me/$formattedMobile");
+    final apiService = Provider.of<ApiService>(context, listen: false);
+    final counselorName = apiService.userName ?? 'representative';
+
+    final name = _detail?['name'] ?? 'Student';
+    final course = _detail?['course'] ?? 'course';
+
+    final message = "Hi $name,\n\n"
+        "This is $counselorName from SSSAM Academy, Gurgaon.\n\n"
+        "Regarding your $course enquiry, please let me know a convenient time to connect.";
+
+    final encodedMessage = Uri.encodeComponent(message);
+    final Uri uri = Uri.parse("https://wa.me/$formattedMobile?text=$encodedMessage");
     try {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (e) {
@@ -1342,20 +1438,7 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
     }
   }
 
-  Future<void> _updateStatus(String status) async {
-    try {
-      final apiService = Provider.of<ApiService>(context, listen: false);
-      final res = await apiService.putRequest('/enquiries/${widget.enquiryId}', data: {
-        'status': status,
-      });
-      if (res.statusCode == 200) {
-        _loadDetails();
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Status updated successfully'), backgroundColor: Colors.green));
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update status: $e')));
-    }
-  }
+
 
   void _openFollowUpSheet() {
     String currentStatus = _detail!['status'] ?? 'NEW';
@@ -1363,6 +1446,7 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
     DateTime? selectedDate = _detail!['followUpDate'] != null
         ? DateTime.tryParse(_detail!['followUpDate'].toString())
         : null;
+    bool isSaving = false;
 
     final statuses = [
       {'value': 'CONTACTED', 'label': 'Contacted', 'color': Colors.blue},
@@ -1573,52 +1657,68 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
-                        icon: const Icon(Icons.check_circle_outline, color: Colors.white),
-                        label: const Text('Save Follow-up', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                        icon: isSaving
+                            ? const SizedBox.shrink()
+                            : const Icon(Icons.check_circle_outline, color: Colors.white),
+                        label: isSaving
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              )
+                            : const Text('Save Follow-up', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blueAccent,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
-                        onPressed: () async {
-                          try {
-                            final apiService = Provider.of<ApiService>(context, listen: false);
-                            final payload = <String, dynamic>{
-                              'status': currentStatus,
-                            };
-                            if (noteController.text.trim().isNotEmpty) {
-                              payload['note'] = noteController.text.trim();
-                            }
-                            if (selectedDate != null) {
-                              payload['followUpDate'] = DateFormat('yyyy-MM-dd').format(selectedDate!);
-                            } else if (currentStatus == 'NOT_INTERESTED') {
-                              payload['followUpDate'] = null;
-                            }
+                        onPressed: isSaving
+                            ? null
+                            : () async {
+                                setSheet(() {
+                                  isSaving = true;
+                                });
+                                try {
+                                  final apiService = Provider.of<ApiService>(context, listen: false);
+                                  final payload = <String, dynamic>{
+                                    'status': currentStatus,
+                                  };
+                                  if (noteController.text.trim().isNotEmpty) {
+                                    payload['note'] = noteController.text.trim();
+                                  }
+                                  if (selectedDate != null) {
+                                    payload['followUpDate'] = DateFormat('yyyy-MM-dd').format(selectedDate!);
+                                  } else if (currentStatus == 'NOT_INTERESTED') {
+                                    payload['followUpDate'] = null;
+                                  }
 
-                            final res = await apiService.putRequest(
-                              '/enquiries/${widget.enquiryId}',
-                              data: payload,
-                            );
-                            if (res.statusCode == 200) {
-                              if (mounted) Navigator.pop(ctx);
-                              _loadDetails();
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('✅ Follow-up updated successfully'),
-                                    backgroundColor: Colors.green,
-                                  ),
-                                );
-                              }
-                            }
-                          } catch (e) {
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Failed to update: $e')),
-                              );
-                            }
-                          }
-                        },
+                                  final res = await apiService.putRequest(
+                                    '/enquiries/${widget.enquiryId}',
+                                    data: payload,
+                                  );
+                                  if (res.statusCode == 200) {
+                                    if (mounted) Navigator.pop(ctx);
+                                    _loadDetails();
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('✅ Follow-up updated successfully'),
+                                          backgroundColor: Colors.green,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                } catch (e) {
+                                  setSheet(() {
+                                    isSaving = false;
+                                  });
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Failed to update: $e')),
+                                    );
+                                  }
+                                }
+                              },
                       ),
                     ),
                   ],
@@ -1631,115 +1731,7 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
     );
   }
 
-  void _openUpdateStatusDialog() {
-    String currentStatus = _detail!['status'] ?? 'NEW';
-    final noteController = TextEditingController();
-    DateTime? selectedDate = _detail!['followUpDate'] != null 
-        ? DateTime.tryParse(_detail!['followUpDate']) 
-        : DateTime.now();
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              backgroundColor: const Color(0xFF1E293B),
-              title: const Text('Update Status', style: TextStyle(color: Colors.white)),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    DropdownButtonFormField<String>(
-                      value: currentStatus,
-                      dropdownColor: const Color(0xFF1E293B),
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(labelText: 'Lead Status', labelStyle: TextStyle(color: Colors.blueGrey)),
-                      items: const [
-                        DropdownMenuItem(value: 'CONTACTED', child: Text('Contacted')),
-                        DropdownMenuItem(value: 'INTERESTED', child: Text('Interested')),
-                        DropdownMenuItem(value: 'NOT_INTERESTED', child: Text('Not Interested')),
-                      ],
-                      onChanged: (val) {
-                        if (val != null) {
-                          setDialogState(() {
-                            currentStatus = val;
-                          });
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: noteController,
-                      maxLines: 2,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(labelText: 'Status Note / Call Summary', labelStyle: TextStyle(color: Colors.blueGrey)),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Follow-up Date:', style: TextStyle(color: Colors.blueGrey)),
-                        TextButton.icon(
-                          onPressed: () async {
-                            final picked = await showDatePicker(
-                              context: context,
-                              initialDate: selectedDate ?? DateTime.now(),
-                              firstDate: DateTime.now().subtract(const Duration(days: 30)),
-                              lastDate: DateTime.now().add(const Duration(days: 365)),
-                            );
-                            if (picked != null) {
-                              setDialogState(() {
-                                selectedDate = picked;
-                              });
-                            }
-                          },
-                          icon: const Icon(Icons.calendar_today, size: 16),
-                          label: Text(
-                            selectedDate == null 
-                                ? 'Not Scheduled' 
-                                : DateFormat('yyyy-MM-dd').format(selectedDate!),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.redAccent)),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    try {
-                      final apiService = Provider.of<ApiService>(context, listen: false);
-                      final res = await apiService.putRequest('/enquiries/${widget.enquiryId}', data: {
-                        'status': currentStatus,
-                        'note': noteController.text.trim(),
-                        'followUpDate': selectedDate?.toIso8601String(),
-                      });
-                      if (res.statusCode == 200) {
-                        Navigator.pop(context);
-                        _loadDetails();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Status & Follow-up updated successfully'), backgroundColor: Colors.green),
-                        );
-                      }
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Update failed: $e')));
-                    }
-                  },
-                  child: const Text('Save'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -1959,13 +1951,57 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
                 final changedAt = historyItem['changedAt'] != null 
                     ? historyItem['changedAt'].toString().split('T')[0] 
                     : '';
+
+                Color statusColor;
+                Color statusBg;
+                switch (status.toString().toUpperCase()) {
+                  case 'NEW':
+                    statusColor = const Color(0xFF3B82F6);
+                    statusBg = const Color(0xFF3B82F6).withOpacity(0.15);
+                    break;
+                  case 'CONTACTED':
+                    statusColor = const Color(0xFFF59E0B);
+                    statusBg = const Color(0xFFF59E0B).withOpacity(0.15);
+                    break;
+                  case 'INTERESTED':
+                    statusColor = const Color(0xFF10B981);
+                    statusBg = const Color(0xFF10B981).withOpacity(0.15);
+                    break;
+                  case 'NOT_INTERESTED':
+                    statusColor = const Color(0xFFEF4444);
+                    statusBg = const Color(0xFFEF4444).withOpacity(0.15);
+                    break;
+                  case 'ADMITTED':
+                  case 'CONVERTED':
+                    statusColor = const Color(0xFF8B5CF6);
+                    statusBg = const Color(0xFF8B5CF6).withOpacity(0.15);
+                    break;
+                  default:
+                    statusColor = Colors.blueGrey;
+                    statusBg = Colors.blueGrey.withOpacity(0.15);
+                }
+
+                final changedByObj = historyItem['changedBy'];
+                String updaterName = 'System';
+                if (changedByObj is Map) {
+                  updaterName = changedByObj['name'] ?? 'Unknown User';
+                } else if (changedByObj is String) {
+                  if (changedByObj == _detail!['createdBy']?['_id']) {
+                    updaterName = _detail!['createdBy']?['name'] ?? 'Creator';
+                  } else if (changedByObj == _detail!['assignedTo']?['_id']) {
+                    updaterName = _detail!['assignedTo']?['name'] ?? 'Assignee';
+                  } else {
+                    updaterName = 'Staff';
+                  }
+                }
+
                 return Container(
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: const Color(0xFF1E293B),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.blueGrey.withOpacity(0.1)),
+                    border: Border.all(color: statusColor.withOpacity(0.2)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1974,14 +2010,14 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: Colors.blueAccent.withOpacity(0.15),
+                              color: statusBg,
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
                               status,
-                              style: const TextStyle(color: Colors.blueAccent, fontSize: 10, fontWeight: FontWeight.bold),
+                              style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold),
                             ),
                           ),
                           Text(
@@ -1990,10 +2026,21 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
                       Text(
                         note,
                         style: const TextStyle(color: Colors.white, fontSize: 14),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          const Icon(Icons.person_outline, size: 14, color: Colors.blueGrey),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Updated by: $updaterName',
+                            style: const TextStyle(color: Colors.blueGrey, fontSize: 11, fontStyle: FontStyle.italic),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -2076,6 +2123,24 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class MobileNumberFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    final text = newValue.text.replaceAll(RegExp(r'\D'), '');
+    final cleanText = text.substring(0, text.length > 10 ? 10 : text.length);
+    String formatted = '';
+    if (cleanText.length > 5) {
+      formatted = cleanText.substring(0, 5) + ' ' + cleanText.substring(5);
+    } else {
+      formatted = cleanText;
+    }
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
     );
   }
 }

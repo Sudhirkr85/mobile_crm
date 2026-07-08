@@ -447,14 +447,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final apiService = Provider.of<ApiService>(context);
     final isAdmin = apiService.userRole == 'admin';
 
-    // Extract Stats
-    final totalLeads = _stats['totalEnquiries'] ?? 0;
-    final admissionsData = _stats['admissions'] ?? {};
-    final totalAdmissions = admissionsData['totalAdmissions'] ?? _stats['totalConversions'] ?? 0;
-    final conversionRate = _stats['conversionRate'] ?? 0.0;
-    final todayFollowups = _stats['todayFollowups'] ?? _stats['today'] ?? 0;
-    final pendingFollowups = _stats['pendingFollowups'] ?? _stats['overdueFollowUps'] ?? 0;
-
     final String todayDate = DateFormat('EEEE, d MMM yyyy').format(DateTime.now());
 
     return Scaffold(
@@ -576,64 +568,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     const SizedBox(height: 24),
                     _buildPunchWidgetCard(apiService),
-
-                    // Metrics title
-                    const Text(
-                      'PERFORMANCE SUMMARY',
-                      style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 0.5),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Metrics Grid (Animated)
-                    TweenAnimationBuilder<double>(
-                      tween: Tween(begin: 0.0, end: 1.0),
-                      duration: const Duration(milliseconds: 700),
-                      builder: (context, value, child) {
-                        return Opacity(
-                          opacity: value,
-                          child: Transform.translate(
-                            offset: Offset(0, 30 * (1 - value)),
-                            child: child,
-                          ),
-                        );
-                      },
-                      child: GridView.count(
-                        crossAxisCount: 2,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        childAspectRatio: 1.3,
-                        children: [
-                          _buildMetricCard(
-                            title: 'Total Leads',
-                            value: totalLeads.toString(),
-                            icon: Icons.people_outline,
-                            color: Colors.blueAccent,
-                          ),
-                          _buildMetricCard(
-                            title: 'Admissions',
-                            value: totalAdmissions.toString(),
-                            icon: Icons.school_outlined,
-                            color: Colors.tealAccent,
-                          ),
-                          _buildMetricCard(
-                            title: 'Conv. Rate',
-                            value: '$conversionRate%',
-                            icon: Icons.trending_up,
-                            color: Colors.purpleAccent,
-                          ),
-                          _buildMetricCard(
-                            title: 'Follow-ups',
-                            value: '$todayFollowups / $pendingFollowups',
-                            icon: Icons.phone_callback,
-                            color: Colors.amberAccent,
-                            subtitle: 'Today / Overdue',
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 20),
 
                     // Quick Actions
                     const Text(
@@ -665,12 +600,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           color: Colors.teal,
                           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdmissionListScreen())),
                         ),
-                        _buildActionCard(
-                          title: 'Reports',
-                          icon: Icons.bar_chart_outlined,
-                          color: Colors.deepPurpleAccent,
-                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportsScreen())),
-                        ),
+                        if (isAdmin) ...[
+                          _buildActionCard(
+                            title: 'Reports',
+                            icon: Icons.bar_chart_outlined,
+                            color: Colors.deepPurpleAccent,
+                            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportsScreen())),
+                          ),
+                        ],
                         _buildActionCard(
                           title: 'My Attendance',
                           icon: Icons.fingerprint,
