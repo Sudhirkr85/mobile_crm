@@ -260,7 +260,7 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                             );
                           }
                           final student = _admissions[index];
-                          final status = student['status'] ?? 'Active';
+                          final status = (student['status'] ?? 'active').toString().toLowerCase();
                           final course = student['course'] ?? 'N/A';
                           final pending = student['remainingAmount'] ?? student['pendingAmount'] ?? 0;
 
@@ -293,13 +293,13 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                                          Container(
                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                            decoration: BoxDecoration(
-                                             color: status == 'Active' ? Colors.teal.withOpacity(0.15) : Colors.red.withOpacity(0.15),
+                                             color: status == 'active' ? Colors.teal.withOpacity(0.15) : Colors.red.withOpacity(0.15),
                                              borderRadius: BorderRadius.circular(8),
-                                             border: Border.all(color: status == 'Active' ? Colors.teal.withOpacity(0.5) : Colors.red.withOpacity(0.5)),
+                                             border: Border.all(color: status == 'active' ? Colors.teal.withOpacity(0.5) : Colors.red.withOpacity(0.5)),
                                            ),
                                            child: Text(
-                                             status,
-                                             style: TextStyle(color: status == 'Active' ? Colors.teal : Colors.red, fontSize: 10, fontWeight: FontWeight.bold),
+                                             status[0].toUpperCase() + status.substring(1),
+                                             style: TextStyle(color: status == 'active' ? Colors.teal : Colors.red, fontSize: 10, fontWeight: FontWeight.bold),
                                            ),
                                          ),
                                        ],
@@ -2084,6 +2084,16 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
     );
   }
 
+  String _formatDateString(dynamic dateObj) {
+    if (dateObj == null) return '';
+    try {
+      final date = DateTime.parse(dateObj.toString());
+      return DateFormat('dd MMM yyyy').format(date);
+    } catch (e) {
+      return dateObj.toString();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final apiService = Provider.of<ApiService>(context);
@@ -2105,7 +2115,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
     final totalFees = _detail!['totalFees'] ?? 0;
     final totalPaid = _detail!['totalPaid'] ?? 0;
     final pendingAmount = _detail!['remainingAmount'] ?? _detail!['pendingAmount'] ?? 0;
-    final status = _detail!['status'] ?? 'Active';
+    final status = (_detail!['status'] ?? 'active').toString().toLowerCase();
     final installments = _detail!['installments'] as List<dynamic>? ?? [];
 
     return Scaffold(
@@ -2125,7 +2135,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                 children: [
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: (status == 'Active' && pendingAmount > 0)
+                      onPressed: (status == 'active' && pendingAmount > 0)
                           ? () => _recordPayment(pendingAmount.toDouble())
                           : null,
                       icon: const Icon(Icons.payment, color: Colors.white, size: 16),
@@ -2137,7 +2147,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                       ),
                     ),
                   ),
-                  if (status == 'Active' && isAdmin) ...[
+                  if (status == 'active' && isAdmin) ...[
                     const SizedBox(width: 8),
                     ElevatedButton.icon(
                       onPressed: _handleDropStudent,
@@ -2156,7 +2166,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    if (status == 'Active') ...[
+                    if (status == 'active') ...[
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () => _setInstallmentPlan(totalFees - (_detail!['registrationAmount'] ?? 0)),
@@ -2178,7 +2188,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                         if (maxRefund > 0) {
                           return Expanded(
                             child: Padding(
-                              padding: EdgeInsets.only(left: (status == 'Active') ? 8.0 : 0.0),
+                              padding: EdgeInsets.only(left: (status == 'active') ? 8.0 : 0.0),
                               child: ElevatedButton.icon(
                                 onPressed: () => _refundAdmission(maxRefund),
                                 icon: const Icon(Icons.undo, color: Colors.white, size: 16),
@@ -2220,8 +2230,8 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                   _buildInfoRow('Course', _detail!['course']),
                   _buildInfoRow('Email', _detail!['email']),
                   _buildInfoRow('Mobile', _detail!['mobile']),
-                  _buildInfoRow('Joining Date', _detail!['admissionDate'] ?? _detail!['createdAt']),
-                  _buildInfoRow('Status', status),
+                  _buildInfoRow('Joining Date', _formatDateString(_detail!['admissionDate'] ?? _detail!['createdAt'])),
+                  _buildInfoRow('Status', status[0].toUpperCase() + status.substring(1)),
                 ],
               ),
             ),
@@ -2259,7 +2269,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ListTile(
                     title: Text('Amount: ₹${inst['amount']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    subtitle: Text('Due Date: ${inst['dueDate'] != null ? inst['dueDate'].toString().split('T')[0] : ''}', style: TextStyle(color: Colors.blueGrey.shade400)),
+                    subtitle: Text('Due Date: ${_formatDateString(inst['dueDate'])}', style: TextStyle(color: Colors.blueGrey.shade400)),
                     trailing: Chip(
                       label: Text(status, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                       backgroundColor: instColor,
@@ -2290,7 +2300,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                         ListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text('Amount: ₹${pay['amount']} ($payType)', style: TextStyle(color: Colors.white, decoration: isVoided ? TextDecoration.lineThrough : null)),
-                          subtitle: Text('Mode: ${pay['paymentMode']} | Date: ${pay['paymentDate'] != null ? pay['paymentDate'].toString().split('T')[0] : ''}', style: TextStyle(color: Colors.blueGrey.shade400)),
+                          subtitle: Text('Mode: ${pay['paymentMode']} | Date: ${_formatDateString(pay['paymentDate'] ?? pay['createdAt'])}', style: TextStyle(color: Colors.blueGrey.shade400)),
                           trailing: Chip(
                             label: Text(payStatus, style: const TextStyle(color: Colors.white, fontSize: 10)),
                             backgroundColor: payStatus == 'ACTIVE' || payStatus == 'success' ? Colors.green : Colors.grey,
