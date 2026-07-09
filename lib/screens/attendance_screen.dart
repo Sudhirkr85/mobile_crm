@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import '../services/api_service.dart';
+import '../services/notification_service.dart';
 import 'login_screen.dart';
 
 class AttendanceScreen extends StatefulWidget {
@@ -184,6 +185,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   Future<void> _handleLogout() async {
     final apiService = Provider.of<ApiService>(context, listen: false);
+    await NotificationService().removeFCMTokenOnLogout(apiService);
     await apiService.logout();
     if (!mounted) return;
     Navigator.of(context).pushReplacement(

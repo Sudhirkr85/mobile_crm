@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'services/api_service.dart';
+import 'services/notification_service.dart';
 import 'screens/login_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/attendance_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+
   runApp(
     MultiProvider(
       providers: [
@@ -73,7 +78,12 @@ class _AuthWrapperState extends State<AuthWrapper> {
   Future<void> _checkAuthentication() async {
     final apiService = Provider.of<ApiService>(context, listen: false);
     final loggedIn = await apiService.tryAutoLogin();
-    
+
+    if (loggedIn) {
+      // Initialize push notifications after successful login
+      await NotificationService().initialize(apiService);
+    }
+
     setState(() {
       _isLoggedIn = loggedIn;
       _userRole = apiService.userRole;

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:dio/dio.dart';
 import '../services/api_service.dart';
+import '../services/notification_service.dart';
 import 'login_screen.dart';
 import 'attendance_screen.dart';
 import 'enquiry_screens.dart';
@@ -428,6 +429,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _handleLogout() async {
     final apiService = Provider.of<ApiService>(context, listen: false);
+    await NotificationService().removeFCMTokenOnLogout(apiService);
     await apiService.logout();
     if (!mounted) return;
     Navigator.of(context).pushReplacement(

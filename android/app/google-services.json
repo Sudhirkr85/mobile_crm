@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "894623128679",
+    "project_id": "sudhir-b1f77",
+    "storage_bucket": "sudhir-b1f77.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:894623128679:android:2fe6d93ff8987dcbea08c2",
+        "android_client_info": {
+          "package_name": "com.institute.crm.mobile_crm"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDewomnyfGI4Wb3jGoU0nj_Mzl2h5gLxO4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

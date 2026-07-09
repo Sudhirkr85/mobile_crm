@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/api_service.dart';
+import '../services/notification_service.dart';
 import 'dashboard_screen.dart';
 import 'attendance_screen.dart';
 
@@ -47,6 +48,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (result['success'] == true) {
       final role = result['role'];
+      if (!mounted) return;
+
+      // Initialize push notifications after login
+      await NotificationService().initialize(apiService);
+
       if (!mounted) return;
 
       if (role == 'employee') {
