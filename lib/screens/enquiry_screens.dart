@@ -1205,6 +1205,66 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
             ),
           ),
 
+          // Horizontal Quick Filters directly at the top
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  {'label': 'All', 'value': 'all', 'icon': Icons.list},
+                  {'label': 'New', 'value': 'new', 'icon': Icons.fiber_new},
+                  {'label': "Today's", 'value': 'today_followups', 'icon': Icons.today},
+                  {'label': 'Pending', 'value': 'pending_followups', 'icon': Icons.pending_actions},
+                  {'label': 'Upcoming', 'value': 'upcoming_followups', 'icon': Icons.upcoming},
+                  {'label': 'Contacted', 'value': 'contacted', 'icon': Icons.phone_in_talk},
+                  {'label': 'Not Interested', 'value': 'not_interested', 'icon': Icons.thumb_down_outlined},
+                ].map((f) {
+                  final isSelected = _filterType == f['value'];
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: ChoiceChip(
+                      selected: isSelected,
+                      labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+                      label: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            f['icon'] as IconData,
+                            size: 14,
+                            color: isSelected ? Colors.white : Colors.blueGrey,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            f['label'] as String,
+                            style: TextStyle(
+                              color: isSelected ? Colors.white : Colors.blueGrey,
+                              fontSize: 12,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            ),
+                          ),
+                        ],
+                      ),
+                      backgroundColor: const Color(0xFF1E293B),
+                      selectedColor: Colors.blueAccent,
+                      side: BorderSide(
+                        color: isSelected ? Colors.blueAccent : Colors.white12,
+                      ),
+                      onSelected: (selected) {
+                        if (selected) {
+                          setState(() {
+                            _filterType = f['value'] as String;
+                          });
+                          _loadEnquiries(isFirstLoad: true);
+                        }
+                      },
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+
           // Active filter chips display
           if (_hasActiveFilters)
             Padding(
