@@ -11,6 +11,7 @@ import 'enquiry_screens.dart';
 import 'admission_screens.dart';
 import 'reports_screen.dart';
 import 'admin_attendance_screen.dart';
+import 'chat_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -660,6 +661,58 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
             ),
+      floatingActionButton: _buildChatFab(),
+    );
+  }
+
+  Widget _buildChatFab() {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 700),
+      curve: Curves.elasticOut,
+      builder: (context, value, child) {
+        return Transform.scale(
+          scale: value,
+          child: child,
+        );
+      },
+      child: GestureDetector(
+        onTap: () => Navigator.push(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (_, anim, __) => FadeTransition(
+              opacity: anim,
+              child: const ChatScreen(),
+            ),
+            transitionDuration: const Duration(milliseconds: 300),
+          ),
+        ),
+        child: Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF667eea).withOpacity(0.5),
+                blurRadius: 16,
+                spreadRadius: 2,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: const Icon(
+            Icons.smart_toy_outlined,
+            color: Colors.white,
+            size: 26,
+          ),
+        ),
+      ),
     );
   }
 
