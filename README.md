@@ -47,6 +47,9 @@ A cross-platform Flutter mobile application designed for students, coordinators,
 8. **Add User Screen (Admin Only)**:
    - Form parameters to register new Counselor, Employee, or Admin staff members.
 
+9. **Chat Assistant Composer**:
+   - Keeps the message input aligned above the keyboard without adding extra bottom gap.
+
 ---
 
 ## 🚀 Getting Started

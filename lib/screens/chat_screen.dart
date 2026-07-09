@@ -540,12 +540,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildInputArea() {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final safeBottomPadding = MediaQuery.of(context).padding.bottom;
     return Container(
       padding: EdgeInsets.only(
         left: 12,
         right: 12,
         top: 10,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 10,
+        bottom: bottomInset > 0 ? 10 : safeBottomPadding + 10,
       ),
       decoration: const BoxDecoration(
         color: Color(0xFF1E293B),
