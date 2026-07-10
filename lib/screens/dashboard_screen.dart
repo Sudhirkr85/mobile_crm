@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:dio/dio.dart';
 import '../services/api_service.dart';
 import '../services/notification_service.dart';
 import 'login_screen.dart';
@@ -22,8 +21,6 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   bool _isLoading = false;
-  Map<String, dynamic> _stats = {};
-
   // Attendance state
   String _punchStatus = 'IN';
   bool _isPunching = false;
@@ -49,10 +46,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final role = apiService.userRole;
       final endpoint = role == 'admin' ? '/dashboard/admin' : '/dashboard/counselor';
       
-      final res = await apiService.getRequest(endpoint);
-      if (res.statusCode == 200 && res.data != null) {
-        _stats = res.data['data'] ?? {};
-      }
+      await apiService.getRequest(endpoint);
 
       // Fetch office settings
       final settingsRes = await apiService.getRequest('/attendance/office-settings');
@@ -71,10 +65,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
       await _checkCurrentLocation();
 
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to load dashboard: ${ApiService.getReadableError(e)}')),
       );
     } finally {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
@@ -180,8 +176,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         await _loadDashboardData();
       }
     } catch (e) {
+      if (!mounted) return;
       _showErrorDialog(ApiService.getReadableError(e));
     } finally {
+      if (!mounted) return;
       setState(() {
         _isPunching = false;
       });
@@ -699,7 +697,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF667eea).withOpacity(0.5),
+                color: const Color(0xFF667eea).withValues(alpha: 0.5),
                 blurRadius: 16,
                 spreadRadius: 2,
                 offset: const Offset(0, 4),
@@ -716,61 +714,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildMetricCard({
-    required String title,
-    required String value,
-    required IconData icon,
-    required Color color,
-    String? subtitle,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.15)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(icon, color: color, size: 22),
-              Text(
-                title,
-                style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 11, fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                value,
-                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              if (subtitle != null) ...[
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: TextStyle(color: Colors.blueGrey.shade500, fontSize: 9),
-                ),
-              ],
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildActionCard({
     required String title,
