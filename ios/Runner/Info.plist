@@ -24,6 +24,10 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Voice chat ke liye microphone access chahiye.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Voice input ko text mein badalne ke liye speech recognition access chahiye.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

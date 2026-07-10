@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:provider/provider.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
-import 'package:flutter_tts/flutter_tts.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../services/api_service.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -23,8 +24,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   bool _isListening = false;
   bool _isLoading = false;
   bool _isSpeaking = false;
-  String _selectedLang = 'hindi'; // 'hindi' or 'english'
   bool _speechAvailable = false;
+  String _selectedLang = 'hindi';
+  String _userDisplayName = '';
 
   late AnimationController _fabAnimController;
 
@@ -33,24 +35,82 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     super.initState();
     _initSpeech();
     _initTts();
+    _loadUserName();
     _fabAnimController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
     )..repeat(reverse: true);
+  }
 
-    // Welcome message
-    _messages.add(_ChatMessage(
-      text: 'Namaste! 🙏 SSSAM AI Assistant mein aapka swagat hai.\n\nAap bolkar ya likhkar data check kar sakte hain, call/whatsapp kar sakte hain aur notes save kar sakte hain.\n\n📖 Details ke liye "Guide / Help" chip par click karain!',
-      isUser: false,
-      lang: _selectedLang,
-    ));
+  Future<void> _loadUserName() async {
+    final apiService = Provider.of<ApiService>(context, listen: false);
+    var userName = apiService.userName;
+
+    if ((userName == null || userName.trim().isEmpty) &&
+        await apiService.tryAutoLogin()) {
+      userName = apiService.userName;
+    }
+
+    final firstName = (userName ?? '').trim().split(' ').first;
+    if (!mounted) return;
+
+    setState(() {
+      _userDisplayName = firstName;
+      _messages
+        ..clear()
+        ..add(
+          _ChatMessage(
+            text: _buildWelcomeMessage(firstName),
+            isUser: false,
+            lang: _selectedLang,
+          ),
+        );
+    });
+  }
+
+  String _buildWelcomeMessage(String firstName) {
+    final greetingName = firstName.isNotEmpty ? ' $firstName' : '';
+    return 'Namaste$greetingName! SSSAM AI Assistant mein aapka swagat hai.\n\nHindi mode mein aap Hinglish mein type ya bol sakte hain aur main Hindi style mein reply dunga. English mode mein main proper English use karunga.\n\nGuide / Help chip se examples dekh sakte hain.';
   }
 
   Future<void> _initSpeech() async {
     _speechAvailable = await _speech.initialize(
       onError: (e) => debugPrint('Speech error: $e'),
+      onStatus: (status) {
+        if (status == 'notListening' && mounted) {
+          setState(() => _isListening = false);
+        }
+      },
     );
-    setState(() {});
+
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<bool> _ensureSpeechReady() async {
+    if (_speechAvailable) {
+      return true;
+    }
+
+    final initialized = await _speech.initialize(
+      onError: (e) => debugPrint('Speech error: $e'),
+      onStatus: (status) {
+        if (status == 'notListening' && mounted) {
+          setState(() => _isListening = false);
+        }
+      },
+    );
+
+    if (!mounted) {
+      return initialized;
+    }
+
+    setState(() {
+      _speechAvailable = initialized;
+    });
+
+    return initialized;
   }
 
   Future<void> _initTts() async {
@@ -59,18 +119,43 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     await _tts.setPitch(1.0);
     await _tts.setVolume(1.0);
     _tts.setCompletionHandler(() {
-      setState(() => _isSpeaking = false);
+      if (mounted) {
+        setState(() => _isSpeaking = false);
+      }
     });
   }
 
-  void _startListening() async {
-    if (!_speechAvailable) {
-      _addBotMessage('❌ Voice input aapke device pe available nahi hai.');
+  Future<void> _startListening() async {
+    final ready = await _ensureSpeechReady();
+    if (!ready) {
+      _addBotMessage(
+        _selectedLang == 'hindi'
+            ? 'Voice input start nahi hua. Microphone permission ya speech support check kijiye.'
+            : 'Voice input could not start. Please check microphone permission or speech support.',
+      );
       return;
     }
-    await _speech.listen(
+
+    final available = await _speech.hasPermission;
+    if (!available) {
+      _addBotMessage(
+        _selectedLang == 'hindi'
+            ? 'Microphone permission missing hai. App settings mein allow karke phir try kijiye.'
+            : 'Microphone permission is missing. Allow it from app settings and try again.',
+      );
+      return;
+    }
+
+    final started = await _speech.listen(
       onResult: (result) {
-        _controller.text = result.recognizedWords;
+        if (!mounted) return;
+        setState(() {
+          _controller.text = result.recognizedWords;
+          _controller.selection = TextSelection.collapsed(
+            offset: _controller.text.length,
+          );
+        });
+
         if (result.finalResult && result.recognizedWords.isNotEmpty) {
           _sendMessage();
         }
@@ -79,41 +164,69 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         localeId: _selectedLang == 'hindi' ? 'hi_IN' : 'en_IN',
         listenFor: const Duration(seconds: 15),
         pauseFor: const Duration(seconds: 3),
+        partialResults: true,
+        listenMode: stt.ListenMode.confirmation,
       ),
     );
-    setState(() => _isListening = true);
-  }
 
-  void _stopListening() async {
-    await _speech.stop();
-    setState(() => _isListening = false);
-  }
-
-  void _speakText(String text, String lang) async {
-    if (_isSpeaking) {
-      await _tts.stop();
-      setState(() => _isSpeaking = false);
+    if (!started) {
+      _addBotMessage(
+        _selectedLang == 'hindi'
+            ? 'Voice input start nahi hua. Device speech service ko check kijiye.'
+            : 'Voice input did not start. Please check the device speech service.',
+      );
       return;
     }
+
+    if (mounted) {
+      setState(() => _isListening = true);
+    }
+  }
+
+  Future<void> _stopListening() async {
+    await _speech.stop();
+    if (mounted) {
+      setState(() => _isListening = false);
+    }
+  }
+
+  Future<void> _speakText(String text, String lang) async {
+    if (_isSpeaking) {
+      await _tts.stop();
+      if (mounted) {
+        setState(() => _isSpeaking = false);
+      }
+      return;
+    }
+
     final cleanText = text
         .replaceAll('**', '')
         .replaceAll('*', '')
         .replaceAll('#', '')
         .replaceAll('•', ',')
         .replaceAll('\n', '. ');
+
     await _tts.setLanguage(lang == 'hindi' ? 'hi-IN' : 'en-IN');
-    setState(() => _isSpeaking = true);
+    if (mounted) {
+      setState(() => _isSpeaking = true);
+    }
     await _tts.speak(cleanText.substring(0, cleanText.length.clamp(0, 500)));
   }
 
-  void _addBotMessage(String text, {String? lang, Map<String, dynamic>? action}) {
+  void _addBotMessage(
+    String text, {
+    String? lang,
+    Map<String, dynamic>? action,
+  }) {
     setState(() {
-      _messages.add(_ChatMessage(
-        text: text,
-        isUser: false,
-        lang: lang ?? _selectedLang,
-        action: action,
-      ));
+      _messages.add(
+        _ChatMessage(
+          text: text,
+          isUser: false,
+          lang: lang ?? _selectedLang,
+          action: action,
+        ),
+      );
     });
     _scrollToBottom();
   }
@@ -134,7 +247,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     final query = _controller.text.trim();
     if (query.isEmpty) return;
 
-    if (_isListening) _stopListening();
+    if (_isListening) {
+      await _stopListening();
+    }
 
     setState(() {
       _messages.add(_ChatMessage(text: query, isUser: true, lang: _selectedLang));
@@ -145,22 +260,40 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
     try {
       final apiService = Provider.of<ApiService>(context, listen: false);
-      final response = await apiService.postRequest('/chat', data: {'query': query});
+      final response = await apiService.postRequest(
+        '/chat',
+        data: {
+          'query': query,
+          'language': _selectedLang,
+          'inputMode': _selectedLang == 'hindi' ? 'hinglish' : 'english',
+          'responseStyle': _selectedLang == 'hindi'
+              ? 'Understand Hinglish typed in English letters and reply in natural Hindi using English letters unless the user asks otherwise.'
+              : 'Reply in clear, proper English.',
+        },
+      );
 
       if (response.statusCode == 200 && response.data != null) {
         final data = response.data['data'];
-        final message = data['message'] ?? '⚠️ Koi response nahi mila.';
+        final message = data['message'] ?? 'Koi response nahi mila.';
         final lang = data['language'] ?? _selectedLang;
         final action = data['action'] as Map<String, dynamic>?;
         _addBotMessage(message, lang: lang, action: action);
       } else {
-        _addBotMessage('⚠️ Server se response nahi mila. Try again karo.');
+        _addBotMessage(
+          _selectedLang == 'hindi'
+              ? 'Server se response nahi mila. Dobara try kijiye.'
+              : 'No response came back from the server. Please try again.',
+        );
       }
     } catch (e) {
       final errMsg = ApiService.getReadableError(e);
-      _addBotMessage('❌ Error: $errMsg');
+      _addBotMessage(
+        _selectedLang == 'hindi' ? 'Error: $errMsg' : 'Error: $errMsg',
+      );
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -220,7 +353,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     ),
                     const SizedBox(width: 4),
                     const Text(
-                      'Online • Gemini 2.5',
+                      'Online • Groq AI',
                       style: TextStyle(color: Colors.blueGrey, fontSize: 10),
                     ),
                   ],
@@ -230,12 +363,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           ],
         ),
         actions: [
-          // Language toggle
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: Row(
               children: [
-                _langChip('हि', 'hindi'),
+                _langChip('HI', 'hindi'),
                 const SizedBox(width: 4),
                 _langChip('EN', 'english'),
               ],
@@ -245,10 +377,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       ),
       body: Column(
         children: [
-          // Quick action chips
           _buildQuickChips(),
-
-          // Messages list
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
@@ -262,8 +391,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               },
             ),
           ),
-
-          // Input area
           _buildInputArea(),
         ],
       ),
@@ -301,11 +428,12 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   Widget _buildQuickChips() {
     final chips = [
-      ('📖 Guide / Help', 'help'),
-      ('📅 Aaj Follow-ups', 'aaj ke follow up'),
-      ('💰 Pending Fees', 'pending fees'),
-      ('📝 Saved Notes', 'saved notes dikhao'),
+      ('Guide / Help', 'help'),
+      ('Aaj Follow-ups', 'aaj ke follow up'),
+      ('Pending Fees', 'pending fees'),
+      ('Saved Notes', 'saved notes dikhao'),
     ];
+
     return Container(
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -344,6 +472,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildMessageBubble(_ChatMessage msg) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final bubbleMaxWidth = screenWidth < 420 ? screenWidth * 0.72 : screenWidth * 0.78;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -365,11 +496,16 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             const SizedBox(width: 8),
           ],
           Flexible(
-            child: Column(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: bubbleMaxWidth),
+              child: Column(
               crossAxisAlignment: msg.isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth < 420 ? 12 : 14,
+                    vertical: screenWidth < 420 ? 9 : 10,
+                  ),
                   decoration: BoxDecoration(
                     gradient: msg.isUser
                         ? const LinearGradient(
@@ -391,7 +527,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
+                      SelectableText(
                         msg.text,
                         style: TextStyle(
                           color: msg.isUser ? Colors.white : Colors.white.withValues(alpha: 0.88),
@@ -402,10 +538,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       if (msg.action != null && msg.action!['mobile'] != null) ...[
                         const SizedBox(height: 8),
                         _buildActionLauncherButton(msg.action!),
-                      ]
+                      ],
                     ],
                   ),
-                ),
                 if (!msg.isUser)
                   Padding(
                     padding: const EdgeInsets.only(top: 4, left: 4),
@@ -421,7 +556,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           ),
                           const SizedBox(width: 3),
                           Text(
-                            _isSpeaking ? 'Ruko' : 'Sunao',
+                            _isSpeaking ? 'Stop' : 'Speak',
                             style: const TextStyle(color: Color(0xFF667eea), fontSize: 11),
                           ),
                         ],
@@ -429,6 +564,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     ),
                   ),
               ],
+              ),
             ),
           ),
           if (msg.isUser) const SizedBox(width: 8),
@@ -438,8 +574,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildActionLauncherButton(Map<String, dynamic> action) {
-    final type = action['type'];
-    final mobile = action['mobile'];
+    final type = action['type']?.toString().toLowerCase();
+    final mobile = action['mobile']?.toString() ?? '';
     final name = action['name'] ?? '';
 
     final isCall = type == 'call';
@@ -447,36 +583,77 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     final icon = isCall ? Icons.phone : Icons.chat;
     final label = isCall ? 'Call $name' : 'WhatsApp $name';
 
-    return ElevatedButton.icon(
-      onPressed: () async {
-        if (isCall) {
-          final uri = Uri.parse('tel:$mobile');
-          if (await canLaunchUrl(uri)) {
-            await launchUrl(uri);
+    return Material(
+      color: color,
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () async {
+          final launched = await _launchAssistantAction(
+            type: isCall ? 'call' : 'whatsapp',
+            mobile: mobile,
+            actionText: action['text']?.toString(),
+          );
+
+          if (!launched && mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  _selectedLang == 'hindi'
+                      ? 'Action open nahi hua. Number ya app permission check kijiye.'
+                      : 'Could not open the action. Please check the number or app permission.',
+                ),
+              ),
+            );
           }
-        } else {
-          String cleanMobile = mobile.replaceAll(RegExp(r'\D'), '');
-          if (cleanMobile.length == 10) {
-            cleanMobile = '91$cleanMobile';
-          }
-          String waUrl = 'https://wa.me/$cleanMobile';
-          if (action['text'] != null) {
-            waUrl += '?text=${Uri.encodeComponent(action['text'])}';
-          }
-          final uri = Uri.parse(waUrl);
-          if (await canLaunchUrl(uri)) {
-            await launchUrl(uri, mode: LaunchMode.externalApplication);
-          }
-        }
-      },
-      icon: Icon(icon, size: 14, color: Colors.white),
-      label: Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 14, color: Colors.white),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+            ],
+          ),
+        ),
       ),
     );
+  }
+
+  Future<bool> _launchAssistantAction({
+    required String type,
+    required String mobile,
+    String? actionText,
+  }) async {
+    final cleanMobile = mobile.replaceAll(RegExp(r'\D'), '');
+
+    if (cleanMobile.isEmpty) {
+      return false;
+    }
+
+    if (type == 'call') {
+      final uri = Uri.parse('tel:$cleanMobile');
+      return launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+
+    var waMobile = cleanMobile;
+    if (waMobile.length == 10) {
+      waMobile = '91$waMobile';
+    }
+
+    var waUrl = 'https://wa.me/$waMobile';
+    final messageText = actionText?.trim();
+    if (messageText != null && messageText.isNotEmpty) {
+      waUrl += '?text=${Uri.encodeComponent(messageText)}';
+    }
+
+    final uri = Uri.parse(waUrl);
+    return launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   Widget _buildTypingIndicator() {
@@ -542,6 +719,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   Widget _buildInputArea() {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final safeBottomPadding = MediaQuery.of(context).padding.bottom;
+
     return Container(
       padding: EdgeInsets.only(
         left: 12,
@@ -555,7 +733,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       ),
       child: Row(
         children: [
-          // Mic button
           GestureDetector(
             onTap: _isListening ? _stopListening : _startListening,
             child: AnimatedContainer(
@@ -572,7 +749,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   color: _isListening ? Colors.transparent : Colors.white24,
                 ),
                 boxShadow: _isListening
-                    ? [BoxShadow(color: const Color(0xFFf5576c).withOpacity(0.4), blurRadius: 12, spreadRadius: 2)]
+                    ? [
+                        BoxShadow(
+                          color: const Color(0xFFf5576c).withOpacity(0.4),
+                          blurRadius: 12,
+                          spreadRadius: 2,
+                        ),
+                      ]
                     : [],
               ),
               child: Icon(
@@ -583,8 +766,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             ),
           ),
           const SizedBox(width: 8),
-
-          // Text input
           Expanded(
             child: TextField(
               controller: _controller,
@@ -594,8 +775,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               onSubmitted: (_) => _sendMessage(),
               decoration: InputDecoration(
                 hintText: _isListening
-                    ? '🎙️ Sun raha hoon...'
-                    : (_selectedLang == 'hindi' ? 'Kuch bhi puchho...' : 'Ask anything...'),
+                    ? 'Sun raha hoon...'
+                    : (_selectedLang == 'hindi'
+                        ? 'Hinglish mein puchho... jaise: aaj ke follow up dikhao'
+                        : 'Ask in proper English...'),
                 hintStyle: TextStyle(color: Colors.white.withOpacity(0.35), fontSize: 13),
                 filled: true,
                 fillColor: Colors.white.withOpacity(0.07),
@@ -612,8 +795,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             ),
           ),
           const SizedBox(width: 8),
-
-          // Send button
           GestureDetector(
             onTap: _isLoading ? null : _sendMessage,
             child: Container(
