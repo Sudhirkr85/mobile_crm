@@ -70,6 +70,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   String _buildWelcomeMessage(String firstName) {
     final greetingName = firstName.isNotEmpty ? ' $firstName' : '';
+    if (_selectedLang == 'english') {
+      return 'Hello$greetingName! Welcome to the SSSAM AI Assistant.\n\nIn English mode, I will reply in proper English. If you switch to Hindi mode, you can type or speak in Hinglish and I will respond in natural Hindi written in English letters.\n\nYou can use the Guide / Help chip to see example prompts.';
+    }
+
     return 'Namaste$greetingName! SSSAM AI Assistant mein aapka swagat hai.\n\nHindi mode mein aap Hinglish mein type ya bol sakte hain aur main Hindi style mein reply dunga. English mode mein main proper English use karunga.\n\nGuide / Help chip se examples dekh sakte hain.';
   }
 
@@ -115,7 +119,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   Future<void> _initTts() async {
     await _tts.setLanguage('hi-IN');
-    await _tts.setSpeechRate(0.85);
+    await _tts.setSpeechRate(0.52);
     await _tts.setPitch(1.0);
     await _tts.setVolume(1.0);
     _tts.setCompletionHandler(() {
@@ -218,6 +222,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         .replaceAll('\n', '. ');
 
     await _tts.setLanguage(lang == 'hindi' ? 'hi-IN' : 'en-IN');
+    await _tts.setSpeechRate(lang == 'hindi' ? 0.5 : 0.45);
     if (mounted) {
       setState(() => _isSpeaking = true);
     }
@@ -420,7 +425,19 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   Widget _langChip(String label, String lang) {
     final isActive = _selectedLang == lang;
     return GestureDetector(
-      onTap: () => setState(() => _selectedLang = lang),
+      onTap: () {
+        setState(() {
+          _selectedLang = lang;
+          if (_messages.isNotEmpty && !_messages.first.isUser) {
+            _messages[0] = _ChatMessage(
+              text: _buildWelcomeMessage(_userDisplayName),
+              isUser: false,
+              lang: _selectedLang,
+              action: _messages.first.action,
+            );
+          }
+        });
+      },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
