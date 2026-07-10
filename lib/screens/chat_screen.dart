@@ -541,6 +541,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       ],
                     ],
                   ),
+                ),
                 if (!msg.isUser)
                   Padding(
                     padding: const EdgeInsets.only(top: 4, left: 4),
