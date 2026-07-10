@@ -28,7 +28,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   String _selectedLang = 'hindi';
   String _userDisplayName = '';
 
-  late AnimationController _fabAnimController;
+  late AnimationController _voicePulseController;
 
   @override
   void initState() {
@@ -36,10 +36,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     _initSpeech();
     _initTts();
     _loadUserName();
-    _fabAnimController = AnimationController(
+    _voicePulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
-    )..repeat(reverse: true);
+    );
   }
 
   Future<void> _loadUserName() async {
@@ -78,7 +78,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       onError: (e) => debugPrint('Speech error: $e'),
       onStatus: (status) {
         if (status == 'notListening' && mounted) {
-          setState(() => _isListening = false);
+          _setListeningState(false);
         }
       },
     );
@@ -97,7 +97,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       onError: (e) => debugPrint('Speech error: $e'),
       onStatus: (status) {
         if (status == 'notListening' && mounted) {
-          setState(() => _isListening = false);
+          _setListeningState(false);
         }
       },
     );
@@ -179,15 +179,26 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     }
 
     if (mounted) {
-      setState(() => _isListening = true);
+      _setListeningState(true);
     }
   }
 
   Future<void> _stopListening() async {
     await _speech.stop();
-    if (mounted) {
-      setState(() => _isListening = false);
+    _setListeningState(false);
+  }
+
+  void _setListeningState(bool value) {
+    if (!mounted) return;
+
+    if (value) {
+      _voicePulseController.repeat(reverse: true);
+    } else {
+      _voicePulseController.stop();
+      _voicePulseController.value = 0;
     }
+
+    setState(() => _isListening = value);
   }
 
   Future<void> _speakText(String text, String lang) async {
@@ -213,15 +224,24 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     await _tts.speak(cleanText.substring(0, cleanText.length.clamp(0, 500)));
   }
 
+  String _sanitizeAssistantMessage(String text) {
+    return text
+        .replaceAll('**', '')
+        .replaceAll('__', '')
+        .replaceAllMapped(RegExp(r'(?m)^\s*#+\s*'), (_) => '')
+        .replaceAll('`', '');
+  }
+
   void _addBotMessage(
     String text, {
     String? lang,
     Map<String, dynamic>? action,
   }) {
+    final cleanText = _sanitizeAssistantMessage(text);
     setState(() {
       _messages.add(
         _ChatMessage(
-          text: text,
+          text: cleanText,
           isUser: false,
           lang: lang ?? _selectedLang,
           action: action,
@@ -303,7 +323,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     _scrollController.dispose();
     _speech.stop();
     _tts.stop();
-    _fabAnimController.dispose();
+    _voicePulseController.dispose();
     super.dispose();
   }
 
@@ -732,97 +752,163 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         color: Color(0xFF1E293B),
         border: Border(top: BorderSide(color: Colors.white10)),
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          GestureDetector(
-            onTap: _isListening ? _stopListening : _startListening,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                gradient: _isListening
-                    ? const LinearGradient(colors: [Color(0xFFf5576c), Color(0xFFf093fb)])
-                    : null,
-                color: _isListening ? null : Colors.white12,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: _isListening ? Colors.transparent : Colors.white24,
-                ),
-                boxShadow: _isListening
-                    ? [
-                        BoxShadow(
-                          color: const Color(0xFFf5576c).withOpacity(0.4),
-                          blurRadius: 12,
-                          spreadRadius: 2,
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 220),
+            child: _isListening
+                ? Container(
+                    key: const ValueKey('listening-indicator'),
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFf5576c).withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFf5576c).withOpacity(0.35)),
+                    ),
+                    child: Row(
+                      children: [
+                        FadeTransition(
+                          opacity: Tween<double>(begin: 0.45, end: 1).animate(_voicePulseController),
+                          child: const Icon(Icons.graphic_eq_rounded, color: Color(0xFFff8fab), size: 18),
                         ),
-                      ]
-                    : [],
-              ),
-              child: Icon(
-                _isListening ? Icons.mic : Icons.mic_none,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
+                        const SizedBox(width: 8),
+                        const Expanded(
+                          child: Text(
+                            'Sun raha hoon... bolte rahiye',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: List.generate(3, (index) {
+                            return AnimatedBuilder(
+                              animation: _voicePulseController,
+                              builder: (context, child) {
+                                final scale =
+                                    0.55 + (((_voicePulseController.value + (index * 0.18)) % 1.0) * 0.85);
+                                return Transform.scale(scale: scale, child: child);
+                              },
+                              child: Container(
+                                width: 6,
+                                height: 6,
+                                margin: const EdgeInsets.symmetric(horizontal: 2),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFff8fab),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            );
+                          }),
+                        ),
+                      ],
+                    ),
+                  )
+                : const SizedBox.shrink(),
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: TextField(
-              controller: _controller,
-              style: const TextStyle(color: Colors.white, fontSize: 14),
-              maxLines: null,
-              textInputAction: TextInputAction.send,
-              onSubmitted: (_) => _sendMessage(),
-              decoration: InputDecoration(
-                hintText: _isListening
-                    ? 'Sun raha hoon...'
-                    : (_selectedLang == 'hindi'
-                        ? 'Hinglish mein puchho... jaise: aaj ke follow up dikhao'
-                        : 'Ask in proper English...'),
-                hintStyle: TextStyle(color: Colors.white.withOpacity(0.35), fontSize: 13),
-                filled: true,
-                fillColor: Colors.white.withOpacity(0.07),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: const BorderSide(color: Color(0xFF667eea), width: 1.5),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          GestureDetector(
-            onTap: _isLoading ? null : _sendMessage,
-            child: Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF667eea), Color(0xFF764ba2)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF667eea).withOpacity(0.4),
-                    blurRadius: 10,
-                    spreadRadius: 1,
+          Row(
+            children: [
+              GestureDetector(
+                onTap: _isListening ? _stopListening : _startListening,
+                child: ScaleTransition(
+                  scale: Tween<double>(begin: 1, end: 1.08).animate(
+                    CurvedAnimation(parent: _voicePulseController, curve: Curves.easeInOut),
                   ),
-                ],
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      gradient: _isListening
+                          ? const LinearGradient(colors: [Color(0xFFf5576c), Color(0xFFf093fb)])
+                          : null,
+                      color: _isListening ? null : Colors.white12,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: _isListening ? Colors.transparent : Colors.white24,
+                      ),
+                      boxShadow: _isListening
+                          ? [
+                              BoxShadow(
+                                color: const Color(0xFFf5576c).withOpacity(0.4),
+                                blurRadius: 12,
+                                spreadRadius: 2,
+                              ),
+                            ]
+                          : [],
+                    ),
+                    child: Icon(
+                      _isListening ? Icons.mic : Icons.mic_none,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                ),
               ),
-              child: _isLoading
-                  ? const Padding(
-                      padding: EdgeInsets.all(10),
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                    )
-                  : const Icon(Icons.send_rounded, color: Colors.white, size: 18),
-            ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: TextField(
+                  controller: _controller,
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                  maxLines: null,
+                  textInputAction: TextInputAction.send,
+                  onSubmitted: (_) => _sendMessage(),
+                  decoration: InputDecoration(
+                    hintText: _isListening
+                        ? 'Sun raha hoon...'
+                        : (_selectedLang == 'hindi'
+                            ? 'Hinglish mein puchho... jaise: aaj ke follow up dikhao'
+                            : 'Ask in proper English...'),
+                    hintStyle: TextStyle(color: Colors.white.withOpacity(0.35), fontSize: 13),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.07),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      borderSide: const BorderSide(color: Color(0xFF667eea), width: 1.5),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: _isLoading ? null : _sendMessage,
+                child: Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF667eea).withOpacity(0.4),
+                        blurRadius: 10,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                  child: _isLoading
+                      ? const Padding(
+                          padding: EdgeInsets.all(10),
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Icon(Icons.send_rounded, color: Colors.white, size: 18),
+                ),
+              ),
+            ],
           ),
         ],
       ),
