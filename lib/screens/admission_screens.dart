@@ -476,7 +476,14 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
           child: StatefulBuilder(
             builder: (context, setDialogState) {
               return Theme(
-                data: ThemeData(brightness: Brightness.dark, primaryColor: Colors.green),
+                data: ThemeData(
+                  brightness: Brightness.dark,
+                  primaryColor: Colors.green,
+                  inputDecorationTheme: const InputDecorationTheme(
+                    filled: true,
+                    fillColor: Color(0xFF374151),
+                  ),
+                ),
                 child: AlertDialog(
                   backgroundColor: const Color(0xFF1F2937),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -1203,7 +1210,14 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
           child: StatefulBuilder(
             builder: (context, setDialogState) {
               return Theme(
-                data: ThemeData(brightness: Brightness.dark, primaryColor: Colors.green),
+                data: ThemeData(
+                  brightness: Brightness.dark,
+                  primaryColor: Colors.green,
+                  inputDecorationTheme: const InputDecorationTheme(
+                    filled: true,
+                    fillColor: Color(0xFF374151),
+                  ),
+                ),
                 child: AlertDialog(
                   backgroundColor: const Color(0xFF1F2937),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -1545,7 +1559,14 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
               final isMatching = diff.abs() < 0.01;
 
               return Theme(
-                data: ThemeData(brightness: Brightness.dark, primaryColor: Colors.amber),
+                data: ThemeData(
+                  brightness: Brightness.dark,
+                  primaryColor: Colors.amber,
+                  inputDecorationTheme: const InputDecorationTheme(
+                    filled: true,
+                    fillColor: Color(0xFF374151),
+                  ),
+                ),
                 child: AlertDialog(
                   backgroundColor: const Color(0xFF1F2937),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -1824,7 +1845,14 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
           child: StatefulBuilder(
             builder: (context, setDialogState) {
               return Theme(
-                data: ThemeData(brightness: Brightness.dark, primaryColor: Colors.orange),
+                data: ThemeData(
+                  brightness: Brightness.dark,
+                  primaryColor: Colors.orange,
+                  inputDecorationTheme: const InputDecorationTheme(
+                    filled: true,
+                    fillColor: Color(0xFF374151),
+                  ),
+                ),
                 child: AlertDialog(
                   backgroundColor: const Color(0xFF1F2937),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -2019,7 +2047,14 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
       context: context,
       builder: (context) {
         return Theme(
-          data: ThemeData(brightness: Brightness.dark, primaryColor: Colors.redAccent),
+          data: ThemeData(
+            brightness: Brightness.dark,
+            primaryColor: Colors.redAccent,
+            inputDecorationTheme: const InputDecorationTheme(
+              filled: true,
+              fillColor: Color(0xFF374151),
+            ),
+          ),
           child: StatefulBuilder(
             builder: (context, setDialogState) {
               return AlertDialog(

@@ -275,7 +275,9 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
                     );
 
                     Color cellColor = const Color(0xFFFFFFFF);
-                    Color textColor = Colors.white;
+                    Color textColor = const Color(0xFF475569);
+                    Color labelColor = Colors.transparent;
+                    Color subLabelColor = Colors.transparent;
                     String statusLabel = '';
                     String subLabel = '';
                     bool isMissedLogout = false;
@@ -288,26 +290,39 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
                     if (record != null) {
                       final specialStatus = record['specialStatus'];
                       if (specialStatus == 'LEAVE') {
-                        cellColor = const Color(0xFFD97706);
+                        cellColor = const Color(0xFFFEF3C7);
+                        textColor = const Color(0xFF92400E);
+                        labelColor = const Color(0xFFB45309);
                         statusLabel = 'LEAVE';
                       } else if (specialStatus == 'WEEKOFF') {
-                        cellColor = const Color(0xFF6366F1);
+                        cellColor = const Color(0xFFEEF2FF);
+                        textColor = const Color(0xFF3730A3);
+                        labelColor = const Color(0xFF4338CA);
                         statusLabel = 'WEEKOFF';
                       } else if (record['punchIn'] != null) {
                         final inTime = DateTime.parse(record['punchIn']).toLocal();
 
                         if (record['punchOut'] != null) {
                           final outTime = DateTime.parse(record['punchOut']).toLocal();
-                          cellColor = const Color(0xFF10B981);
+                          cellColor = const Color(0xFFDCFCE7);
+                          textColor = const Color(0xFF166534);
+                          labelColor = const Color(0xFF15803D);
+                          subLabelColor = const Color(0xFF16A34A);
                           statusLabel = 'In: ${DateFormat('hh:mm').format(inTime)}';
                           subLabel = 'Out: ${DateFormat('hh:mm').format(outTime)}';
                         } else {
                           if (isToday) {
-                            cellColor = const Color(0xFF10B981);
+                            cellColor = const Color(0xFFDCFCE7);
+                            textColor = const Color(0xFF166534);
+                            labelColor = const Color(0xFF15803D);
+                            subLabelColor = const Color(0xFF16A34A);
                             statusLabel = 'In: ${DateFormat('hh:mm').format(inTime)}';
                             subLabel = 'ACTIVE';
                           } else {
-                            cellColor = const Color(0xFFEF4444);
+                            cellColor = const Color(0xFFFEE2E2);
+                            textColor = const Color(0xFF991B1B);
+                            labelColor = const Color(0xFFB91C1C);
+                            subLabelColor = const Color(0xFFDC2626);
                             statusLabel = 'In: ${DateFormat('hh:mm').format(inTime)}';
                             subLabel = 'MISS';
                             isMissedLogout = true;
@@ -316,12 +331,13 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
                       }
                     } else {
                       if (isPast) {
-                        cellColor = const Color(0xFF334155).withOpacity(0.3);
+                        cellColor = const Color(0xFFF1F5F9);
+                        textColor = const Color(0xFF64748B);
+                        labelColor = const Color(0xFFEF4444);
                         statusLabel = 'ABSENT';
-                        textColor = Colors.blueGrey.shade400;
                       } else {
                         cellColor = const Color(0xFFFFFFFF);
-                        textColor = Colors.white30;
+                        textColor = const Color(0xFF94A3B8);
                       }
                     }
 
@@ -341,7 +357,7 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
                           borderRadius: BorderRadius.circular(8),
                           border: isToday
                               ? Border.all(color: Colors.blueAccent, width: 1.5)
-                              : Border.all(color: Colors.white.withOpacity(0.05), width: 1),
+                              : Border.all(color: const Color(0xFFE2E8F0), width: 1),
                         ),
                         padding: const EdgeInsets.all(3),
                         child: Column(
@@ -371,8 +387,8 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
                             if (statusLabel.isNotEmpty)
                               Text(
                                 statusLabel,
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                                  color: labelColor,
                                   fontSize: 7,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -383,9 +399,7 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
                               Text(
                                 subLabel,
                                 style: TextStyle(
-                                  color: isMissedLogout
-                                      ? Colors.yellowAccent
-                                      : Colors.white.withOpacity(0.9),
+                                  color: subLabelColor,
                                   fontSize: 7,
                                   fontWeight: isMissedLogout
                                       ? FontWeight.bold

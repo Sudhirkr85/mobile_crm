@@ -410,7 +410,14 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
       barrierDismissible: false,
       builder: (context) {
         return Theme(
-          data: ThemeData(brightness: Brightness.dark, primaryColor: Colors.blueAccent),
+          data: ThemeData(
+            brightness: Brightness.dark,
+            primaryColor: Colors.blueAccent,
+            inputDecorationTheme: const InputDecorationTheme(
+              filled: true,
+              fillColor: Color(0xFF374151),
+            ),
+          ),
           child: StatefulBuilder(
             builder: (context, setState) {
               return AlertDialog(
@@ -481,27 +488,27 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
                           value: selectedCourse,
-                          dropdownColor: const Color(0xFFFFFFFF),
+                          dropdownColor: const Color(0xFF1F2937),
                           style: const TextStyle(color: Colors.white),
                           decoration: const InputDecoration(
                             labelText: 'Course Interested *',
                             labelStyle: TextStyle(color: Colors.blueGrey),
                             filled: true,
-                            fillColor: Color(0xFFF8FAFC),
+                            fillColor: Color(0xFF374151),
                             enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.blueGrey)),
                             focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.blueAccent)),
                           ),
                           items: const [
-                            DropdownMenuItem(value: 'Data Analytics', child: Text('Data Analytics')),
-                            DropdownMenuItem(value: 'Data Science', child: Text('Data Science')),
-                            DropdownMenuItem(value: 'Basic Computer', child: Text('Basic Computer')),
-                            DropdownMenuItem(value: 'Python Full Stack', child: Text('Python Full Stack')),
-                            DropdownMenuItem(value: 'Java Full Stack', child: Text('Java Full Stack')),
-                            DropdownMenuItem(value: 'MERN Stack', child: Text('MERN Stack')),
-                            DropdownMenuItem(value: 'Ethical Hacking', child: Text('Ethical Hacking')),
-                            DropdownMenuItem(value: 'Web Development', child: Text('Web Development')),
-                            DropdownMenuItem(value: 'Digital Marketing', child: Text('Digital Marketing')),
-                            DropdownMenuItem(value: 'Other', child: Text('Other')),
+                            DropdownMenuItem(value: 'Data Analytics', child: Text('Data Analytics', style: TextStyle(color: Colors.white))),
+                            DropdownMenuItem(value: 'Data Science', child: Text('Data Science', style: TextStyle(color: Colors.white))),
+                            DropdownMenuItem(value: 'Basic Computer', child: Text('Basic Computer', style: TextStyle(color: Colors.white))),
+                            DropdownMenuItem(value: 'Python Full Stack', child: Text('Python Full Stack', style: TextStyle(color: Colors.white))),
+                            DropdownMenuItem(value: 'Java Full Stack', child: Text('Java Full Stack', style: TextStyle(color: Colors.white))),
+                            DropdownMenuItem(value: 'MERN Stack', child: Text('MERN Stack', style: TextStyle(color: Colors.white))),
+                            DropdownMenuItem(value: 'Ethical Hacking', child: Text('Ethical Hacking', style: TextStyle(color: Colors.white))),
+                            DropdownMenuItem(value: 'Web Development', child: Text('Web Development', style: TextStyle(color: Colors.white))),
+                            DropdownMenuItem(value: 'Digital Marketing', child: Text('Digital Marketing', style: TextStyle(color: Colors.white))),
+                            DropdownMenuItem(value: 'Other', child: Text('Other', style: TextStyle(color: Colors.white))),
                           ],
                           onChanged: (val) {
                             setState(() {
@@ -528,24 +535,24 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
                           value: selectedSource,
-                          dropdownColor: const Color(0xFFFFFFFF),
+                          dropdownColor: const Color(0xFF1F2937),
                           style: const TextStyle(color: Colors.white),
                           decoration: const InputDecoration(
                             labelText: 'Source *',
                             labelStyle: TextStyle(color: Colors.blueGrey),
                             filled: true,
-                            fillColor: Color(0xFFF8FAFC),
+                            fillColor: Color(0xFF374151),
                             enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.blueGrey)),
                             focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.blueAccent)),
                           ),
                           items: const [
-                            DropdownMenuItem(value: 'walk_in', child: Text('Walk In')),
-                            DropdownMenuItem(value: 'phone_call', child: Text('Phone Call')),
-                            DropdownMenuItem(value: 'website', child: Text('Website')),
-                            DropdownMenuItem(value: 'referral', child: Text('Referral')),
-                            DropdownMenuItem(value: 'social_media', child: Text('Social Media')),
-                            DropdownMenuItem(value: 'advertisement', child: Text('Advertisement')),
-                            DropdownMenuItem(value: 'other', child: Text('Other')),
+                            DropdownMenuItem(value: 'walk_in', child: Text('Walk In', style: TextStyle(color: Colors.white))),
+                            DropdownMenuItem(value: 'phone_call', child: Text('Phone Call', style: TextStyle(color: Colors.white))),
+                            DropdownMenuItem(value: 'website', child: Text('Website', style: TextStyle(color: Colors.white))),
+                            DropdownMenuItem(value: 'referral', child: Text('Referral', style: TextStyle(color: Colors.white))),
+                            DropdownMenuItem(value: 'social_media', child: Text('Social Media', style: TextStyle(color: Colors.white))),
+                            DropdownMenuItem(value: 'advertisement', child: Text('Advertisement', style: TextStyle(color: Colors.white))),
+                            DropdownMenuItem(value: 'other', child: Text('Other', style: TextStyle(color: Colors.white))),
                           ],
                           onChanged: (val) {
                             setState(() {
@@ -894,7 +901,7 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
           const SizedBox(width: 8),
           Text(label, style: const TextStyle(color: Colors.blueGrey, fontSize: 13)),
           const Spacer(),
-          Text(value, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+          Text(value, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13, fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -923,7 +930,14 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
       barrierDismissible: false,
       builder: (context) {
         return Theme(
-          data: ThemeData(brightness: Brightness.dark, primaryColor: Colors.teal),
+          data: ThemeData(
+            brightness: Brightness.dark,
+            primaryColor: Colors.teal,
+            inputDecorationTheme: const InputDecorationTheme(
+              filled: true,
+              fillColor: Color(0xFF374151),
+            ),
+          ),
           child: StatefulBuilder(
             builder: (context, setState) {
               return AlertDialog(
@@ -961,20 +975,20 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
                       value: selectedCourse,
-                      dropdownColor: const Color(0xFFFFFFFF),
+                      dropdownColor: const Color(0xFF1F2937),
                       style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(labelText: 'Course *', labelStyle: TextStyle(color: Colors.blueGrey), filled: true, fillColor: Color(0xFFF8FAFC)),
+                      decoration: const InputDecoration(labelText: 'Course *', labelStyle: TextStyle(color: Colors.blueGrey), filled: true, fillColor: Color(0xFF374151)),
                       items: const [
-                        DropdownMenuItem(value: 'Data Analytics', child: Text('Data Analytics')),
-                        DropdownMenuItem(value: 'Data Science', child: Text('Data Science')),
-                        DropdownMenuItem(value: 'Basic Computer', child: Text('Basic Computer')),
-                        DropdownMenuItem(value: 'Python Full Stack', child: Text('Python Full Stack')),
-                        DropdownMenuItem(value: 'Java Full Stack', child: Text('Java Full Stack')),
-                        DropdownMenuItem(value: 'MERN Stack', child: Text('MERN Stack')),
-                        DropdownMenuItem(value: 'Ethical Hacking', child: Text('Ethical Hacking')),
-                        DropdownMenuItem(value: 'Web Development', child: Text('Web Development')),
-                        DropdownMenuItem(value: 'Digital Marketing', child: Text('Digital Marketing')),
-                        DropdownMenuItem(value: 'Other', child: Text('Other')),
+                        DropdownMenuItem(value: 'Data Analytics', child: Text('Data Analytics', style: TextStyle(color: Colors.white))),
+                        DropdownMenuItem(value: 'Data Science', child: Text('Data Science', style: TextStyle(color: Colors.white))),
+                        DropdownMenuItem(value: 'Basic Computer', child: Text('Basic Computer', style: TextStyle(color: Colors.white))),
+                        DropdownMenuItem(value: 'Python Full Stack', child: Text('Python Full Stack', style: TextStyle(color: Colors.white))),
+                        DropdownMenuItem(value: 'Java Full Stack', child: Text('Java Full Stack', style: TextStyle(color: Colors.white))),
+                        DropdownMenuItem(value: 'MERN Stack', child: Text('MERN Stack', style: TextStyle(color: Colors.white))),
+                        DropdownMenuItem(value: 'Ethical Hacking', child: Text('Ethical Hacking', style: TextStyle(color: Colors.white))),
+                        DropdownMenuItem(value: 'Web Development', child: Text('Web Development', style: TextStyle(color: Colors.white))),
+                        DropdownMenuItem(value: 'Digital Marketing', child: Text('Digital Marketing', style: TextStyle(color: Colors.white))),
+                        DropdownMenuItem(value: 'Other', child: Text('Other', style: TextStyle(color: Colors.white))),
                       ],
                       onChanged: (val) => setState(() { selectedCourse = val; showCustomCourse = val == 'Other'; }),
                     ),
