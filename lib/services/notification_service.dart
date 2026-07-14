@@ -7,7 +7,7 @@ import 'api_service.dart';
 
 // Top-level function: handles background messages when app is killed/closed
 @pragma('vm:entry-point')
-Future<void> _firebaseBackgroundHandler(RemoteMessage message) async {
+Future<void> firebaseBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   // Show local notification when app is in background/terminated
   final FlutterLocalNotificationsPlugin plugin = FlutterLocalNotificationsPlugin();
@@ -74,29 +74,26 @@ class NotificationService {
         ?.createNotificationChannel(channel);
 
     // Request permission (Android 13+ and iOS)
-    final NotificationSettings settings = await _messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    try {
+      await _messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+    } catch (_) {}
 
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      // Register background handler
-      FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundHandler);
+    // Handle foreground messages - show local notification
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      _showLocalNotification(_localNotifications, message);
+    });
 
-      // Handle foreground messages - show local notification
-      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        _showLocalNotification(_localNotifications, message);
-      });
+    // Get FCM token and send to backend
+    await _registerFCMToken(apiService);
 
-      // Get FCM token and send to backend
-      await _registerFCMToken(apiService);
-
-      // Listen for token refresh
-      _messaging.onTokenRefresh.listen((newToken) async {
-        await _saveFCMTokenToBackend(newToken, apiService);
-      });
-    }
+    // Listen for token refresh
+    _messaging.onTokenRefresh.listen((newToken) async {
+      await _saveFCMTokenToBackend(newToken, apiService);
+    });
   }
 
   Future<void> _registerFCMToken(ApiService apiService) async {
@@ -133,7 +130,7 @@ class NotificationService {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('fcm_token');
       if (token != null) {
-        await apiService.postRequest('/notifications/fcm-token/remove', data: {
+        await apiService.deleteRequest('/notifications/fcm-token', data: {
           'token': token,
         });
         await prefs.remove('fcm_token');

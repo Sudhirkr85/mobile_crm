@@ -105,10 +105,10 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text('Staff Attendance Board', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF1F2937),
         elevation: 0,
       ),
       body: _buildCalendarViewTab(),
@@ -135,13 +135,13 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
             children: [
               DropdownButtonFormField<String>(
                 value: _selectedUserId,
-                dropdownColor: const Color(0xFF1E293B),
-                style: const TextStyle(color: Colors.white),
+                dropdownColor: const Color(0xFFFFFFFF),
+                style: const TextStyle(color: Color(0xFF1E293B)),
                 decoration: const InputDecoration(
                   labelText: 'Select Employee',
                   labelStyle: TextStyle(color: Colors.blueGrey),
                   filled: true,
-                  fillColor: Color(0xFF1E293B),
+                  fillColor: Color(0xFFFFFFFF),
                   border: OutlineInputBorder(borderSide: BorderSide.none),
                 ),
                 items: _users.map((u) {
@@ -174,7 +174,7 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
                   ),
                   Text(
                     DateFormat('MMMM yyyy').format(_selectedMonth),
-                    style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(color: Color(0xFF1E293B), fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   IconButton(
                     icon: const Icon(Icons.chevron_right, color: Colors.blueAccent),
@@ -198,7 +198,7 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
+                color: const Color(0xFFFFFFFF),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.white.withOpacity(0.05)),
               ),
@@ -212,7 +212,7 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
                       _buildSummaryStatItem('ABSENT', '$_countAbsent', Colors.redAccent),
                     ],
                   ),
-                  const Divider(color: Colors.white10, height: 16, thickness: 1),
+                  const Divider(color: Colors.black12, height: 16, thickness: 1),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
@@ -274,7 +274,7 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
                       orElse: () => null,
                     );
 
-                    Color cellColor = const Color(0xFF1E293B);
+                    Color cellColor = const Color(0xFFFFFFFF);
                     Color textColor = Colors.white;
                     String statusLabel = '';
                     String subLabel = '';
@@ -320,7 +320,7 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
                         statusLabel = 'ABSENT';
                         textColor = Colors.blueGrey.shade400;
                       } else {
-                        cellColor = const Color(0xFF1E293B);
+                        cellColor = const Color(0xFFFFFFFF);
                         textColor = Colors.white30;
                       }
                     }
@@ -415,7 +415,7 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF1E293B),
+          backgroundColor: const Color(0xFF1F2937),
           title: Text('Day $day Attendance Details', style: const TextStyle(color: Colors.white)),
           content: Column(
             mainAxisSize: MainAxisSize.min,

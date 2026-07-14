@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'services/api_service.dart';
 import 'services/notification_service.dart';
 import 'screens/login_screen.dart';
@@ -10,6 +11,9 @@ import 'screens/attendance_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+
+  // Register FCM background message handler
+  FirebaseMessaging.onBackgroundMessage(firebaseBackgroundHandler);
 
   runApp(
     MultiProvider(
@@ -30,20 +34,25 @@ class MyApp extends StatelessWidget {
       title: 'SSSAM CRM',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        brightness: Brightness.dark,
-        primaryColor: const Color(0xFF1E293B),
-        scaffoldBackgroundColor: const Color(0xFF0F172A),
+        brightness: Brightness.light,
+        primaryColor: const Color(0xFF3B82F6),
+        scaffoldBackgroundColor: const Color(0xFFF8FAFC),
+        cardTheme: const CardThemeData(
+          color: Colors.white,
+          elevation: 1,
+        ),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF1E293B),
+          backgroundColor: Color(0xFF1F2937),
+          foregroundColor: Colors.white,
           elevation: 0,
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: const Color(0xFF1E293B),
+          fillColor: Colors.white,
           labelStyle: const TextStyle(color: Colors.blueGrey),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide.none,
+            borderSide: const BorderSide(color: Colors.black12, width: 1),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),

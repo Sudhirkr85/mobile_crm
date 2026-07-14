@@ -196,7 +196,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return ScaleTransition(
           scale: CurvedAnimation(parent: anim1, curve: Curves.easeOutBack),
           child: AlertDialog(
-            backgroundColor: const Color(0xFF1E293B),
+            backgroundColor: const Color(0xFF1F2937),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -267,7 +267,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return ScaleTransition(
           scale: CurvedAnimation(parent: anim1, curve: Curves.easeOut),
           child: AlertDialog(
-            backgroundColor: const Color(0xFF1E293B),
+            backgroundColor: const Color(0xFF1F2937),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -315,7 +315,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0F172A),
+                    backgroundColor: const Color(0xFFF8FAFC),
                     side: const BorderSide(color: Colors.blueGrey, width: 1),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
@@ -345,7 +345,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: const Color(0xFFFFFFFF),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: statusColor.withOpacity(0.3), width: 1),
         boxShadow: [
@@ -383,18 +383,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Text(
                   'ATTENDANCE STATUS',
-                  style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                  style: TextStyle(color: Colors.blueGrey.shade600, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   _punchStatus == 'IN' ? 'Punched Out' : 'Active - Punched In',
-                  style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: Color(0xFF1E293B), fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   _distanceMessage,
                   style: TextStyle(
-                    color: isWithinOffice ? Colors.greenAccent.shade400 : Colors.redAccent.shade100,
+                    color: isWithinOffice ? Colors.green.shade700 : Colors.red.shade700,
                     fontSize: 11,
                   ),
                 ),
@@ -444,7 +444,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final String todayDate = DateFormat('EEEE, d MMM yyyy').format(DateTime.now());
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: Row(
           children: [
@@ -458,7 +458,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const Text('SSSAM CRM', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20)),
           ],
         ),
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF1F2937),
         elevation: 0,
         actions: [
           IconButton(
@@ -582,7 +582,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const Text(
                       'QUICK ACCESS MODULES',
                       style: TextStyle(
-                        color: Colors.white70,
+                        color: Color(0xFF64748B),
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.5,
@@ -734,7 +734,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             duration: const Duration(milliseconds: 100),
             child: Container(
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
+                color: const Color(0xFFFFFFFF),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.white.withOpacity(0.05)),
                 boxShadow: [
@@ -759,7 +759,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(height: 8),
                   Text(
                     title,
-                    style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                    style: const TextStyle(color: Color(0xFF1E293B), fontSize: 11, fontWeight: FontWeight.w600),
                     textAlign: TextAlign.center,
                   ),
                 ],

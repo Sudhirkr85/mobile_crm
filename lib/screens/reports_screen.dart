@@ -105,17 +105,17 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text('Reports & Analytics', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF1F2937),
         elevation: 0,
       ),
       body: Column(
         children: [
           // Filter Tabs Bar
           Container(
-            color: const Color(0xFF1E293B),
+            color: const Color(0xFFFFFFFF),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -126,7 +126,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     label: const Text('This Month'),
                     selectedColor: Colors.blueAccent,
                     labelStyle: TextStyle(color: _currentFilter == 'thisMonth' ? Colors.white : Colors.blueGrey, fontWeight: FontWeight.bold),
-                    backgroundColor: const Color(0xFF0F172A),
+                    backgroundColor: const Color(0xFFF8FAFC),
                     onSelected: (selected) {
                       if (selected) {
                         setState(() {
@@ -143,7 +143,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     label: const Text('This Year'),
                     selectedColor: Colors.blueAccent,
                     labelStyle: TextStyle(color: _currentFilter == 'thisYear' ? Colors.white : Colors.blueGrey, fontWeight: FontWeight.bold),
-                    backgroundColor: const Color(0xFF0F172A),
+                    backgroundColor: const Color(0xFFF8FAFC),
                     onSelected: (selected) {
                       if (selected) {
                         setState(() {
@@ -160,7 +160,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     label: const Text('All Time'),
                     selectedColor: Colors.blueAccent,
                     labelStyle: TextStyle(color: _currentFilter == 'allTime' ? Colors.white : Colors.blueGrey, fontWeight: FontWeight.bold),
-                    backgroundColor: const Color(0xFF0F172A),
+                    backgroundColor: const Color(0xFFF8FAFC),
                     onSelected: (selected) {
                       if (selected) {
                         setState(() {
@@ -179,7 +179,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         : '${_selectedCustomMonth!.year}-${_selectedCustomMonth!.month.toString().padLeft(2, '0')}'),
                     selectedColor: Colors.blueAccent,
                     labelStyle: TextStyle(color: _currentFilter == 'customMonth' ? Colors.white : Colors.blueGrey, fontWeight: FontWeight.bold),
-                    backgroundColor: const Color(0xFF0F172A),
+                    backgroundColor: const Color(0xFFF8FAFC),
                     onSelected: (selected) async {
                       final picked = await showDatePicker(
                         context: context,
@@ -223,7 +223,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
                             const Text(
                               'BUSINESS HIGHLIGHTS',
-                              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                              style: TextStyle(color: Color(0xFF1E293B), fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5),
                             ),
                             const SizedBox(height: 12),
                             _buildReportRow('Total Revenue Collected', '₹$totalPaid'),
@@ -235,7 +235,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                             const SizedBox(height: 24),
                             const Text(
                               'FEE COLLECTION DETAILS',
-                              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                              style: TextStyle(color: Color(0xFF1E293B), fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5),
                             ),
                             const SizedBox(height: 12),
                             _buildReportRow('Collected Registration Fees', '₹$regFees'),
@@ -288,7 +288,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(color: const Color(0xFFFFFFFF), borderRadius: BorderRadius.circular(16)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -356,7 +356,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 6),
-        Text(title, style: const TextStyle(color: Colors.white70, fontSize: 11)),
+        Text(title, style: const TextStyle(color: Color(0xFF64748B), fontSize: 11)),
       ],
     );
   }
@@ -365,12 +365,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(10)),
+      decoration: BoxDecoration(color: const Color(0xFFFFFFFF), borderRadius: BorderRadius.circular(10)),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(title, style: const TextStyle(color: Colors.blueGrey, fontSize: 14, fontWeight: FontWeight.w500)),
-          Text(value, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(value, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 16, fontWeight: FontWeight.bold)),
         ],
       ),
     );

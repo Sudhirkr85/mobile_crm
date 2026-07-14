@@ -203,7 +203,7 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
             builder: (_, scrollCtrl) {
               return Container(
                 decoration: const BoxDecoration(
-                  color: Color(0xFF1E293B),
+                  color: Colors.white,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                 ),
                 padding: const EdgeInsets.all(20),
@@ -214,7 +214,7 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Filter Leads', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                        const Text('Filter Leads', style: TextStyle(color: Color(0xFF1E293B), fontSize: 18, fontWeight: FontWeight.bold)),
                         TextButton(
                           onPressed: () {
                             setLocal(() {
@@ -231,126 +231,11 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                         ),
                       ],
                     ),
-                    const Divider(color: Colors.white12),
-                    const SizedBox(height: 8),
-
-                    // Quick Filter Type
-                    const Text('Quick Filters', style: TextStyle(color: Colors.blueGrey, fontSize: 12, fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        {'label': 'All', 'value': 'all', 'icon': Icons.list},
-                        {'label': 'New', 'value': 'new', 'icon': Icons.fiber_new},
-                        {'label': "Today's Follow-ups", 'value': 'today_followups', 'icon': Icons.today},
-                        {'label': 'Pending Follow-ups', 'value': 'pending_followups', 'icon': Icons.pending_actions},
-                        {'label': 'Upcoming Follow-ups', 'value': 'upcoming_followups', 'icon': Icons.upcoming},
-                        {'label': 'Contacted', 'value': 'contacted', 'icon': Icons.phone_in_talk},
-                        {'label': 'Not Interested', 'value': 'not_interested', 'icon': Icons.thumb_down_outlined},
-                      ].map((f) {
-                        final isSelected = localFilterType == f['value'];
-                        return FilterChip(
-                          selected: isSelected,
-                          label: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(f['icon'] as IconData, size: 14, color: isSelected ? Colors.white : Colors.blueGrey),
-                              const SizedBox(width: 4),
-                              Text(f['label'] as String, style: TextStyle(color: isSelected ? Colors.white : Colors.blueGrey, fontSize: 12)),
-                            ],
-                          ),
-                          backgroundColor: const Color(0xFF0F172A),
-                          selectedColor: Colors.blueAccent,
-                          checkmarkColor: Colors.white,
-                          showCheckmark: false,
-                          side: BorderSide(color: isSelected ? Colors.blueAccent : Colors.white12),
-                          onSelected: (_) => setLocal(() => localFilterType = f['value'] as String),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Status Filter
-                    const Text('Status', style: TextStyle(color: Colors.blueGrey, fontSize: 12, fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        {'label': 'All', 'value': 'all', 'color': Colors.blueGrey},
-                        {'label': 'Contacted', 'value': 'CONTACTED', 'color': Colors.blue},
-                        {'label': 'Interested', 'value': 'INTERESTED', 'color': Colors.orange},
-                        {'label': 'Not Interested', 'value': 'NOT_INTERESTED', 'color': Colors.red},
-                      ].map((s) {
-                        final isSelected = localStatus == s['value'];
-                        final color = s['color'] as Color;
-                        return ChoiceChip(
-                          selected: isSelected,
-                          label: Text(s['label'] as String, style: TextStyle(color: isSelected ? Colors.white : color, fontSize: 12, fontWeight: FontWeight.w600)),
-                          backgroundColor: const Color(0xFF0F172A),
-                          selectedColor: color,
-                          side: BorderSide(color: isSelected ? color : Colors.white12),
-                          onSelected: (_) => setLocal(() => localStatus = s['value'] as String),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Follow-up toggles
-                    const Text('Follow-up', style: TextStyle(color: Colors.blueGrey, fontSize: 12, fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () => setLocal(() => localFollowUpToday = !localFollowUpToday),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              decoration: BoxDecoration(
-                                color: localFollowUpToday ? Colors.blueAccent.withOpacity(0.2) : const Color(0xFF0F172A),
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: localFollowUpToday ? Colors.blueAccent : Colors.white12),
-                              ),
-                              child: Column(
-                                children: [
-                                  Icon(Icons.today, color: localFollowUpToday ? Colors.blueAccent : Colors.blueGrey, size: 20),
-                                  const SizedBox(height: 4),
-                                  Text("Today's", style: TextStyle(color: localFollowUpToday ? Colors.blueAccent : Colors.blueGrey, fontSize: 11)),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () => setLocal(() => localFollowUpOverdue = !localFollowUpOverdue),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              decoration: BoxDecoration(
-                                color: localFollowUpOverdue ? Colors.redAccent.withOpacity(0.2) : const Color(0xFF0F172A),
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: localFollowUpOverdue ? Colors.redAccent : Colors.white12),
-                              ),
-                              child: Column(
-                                children: [
-                                  Icon(Icons.pending_actions, color: localFollowUpOverdue ? Colors.redAccent : Colors.blueGrey, size: 20),
-                                  const SizedBox(height: 4),
-                                  Text('Overdue', style: TextStyle(color: localFollowUpOverdue ? Colors.redAccent : Colors.blueGrey, fontSize: 11)),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
+                    const Divider(color: Colors.black12),
+                    const SizedBox(height: 12),
 
                     // Assigned To
-                    const Text('Assigned To', style: TextStyle(color: Colors.blueGrey, fontSize: 12, fontWeight: FontWeight.w600)),
+                    const Text('Assigned To', style: TextStyle(color: Color(0xFF64748B), fontSize: 12, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
@@ -362,18 +247,25 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                         final isSelected = localAssignedTo == a['value'];
                         return ChoiceChip(
                           selected: isSelected,
-                          label: Text(a['label'] as String, style: TextStyle(color: isSelected ? Colors.white : Colors.blueGrey, fontSize: 12)),
-                          backgroundColor: const Color(0xFF0F172A),
-                          selectedColor: Colors.purpleAccent,
-                          side: BorderSide(color: isSelected ? Colors.purpleAccent : Colors.white12),
+                          label: Text(
+                            a['label'] as String,
+                            style: TextStyle(
+                              color: isSelected ? Colors.white : const Color(0xFF64748B),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          backgroundColor: const Color(0xFFF8FAFC),
+                          selectedColor: Colors.purple,
+                          side: BorderSide(color: isSelected ? Colors.purple : Colors.black12),
                           onSelected: (_) => setLocal(() => localAssignedTo = a['value'] as String?),
                         );
                       }).toList(),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
 
                     // Date Range
-                    const Text('Date Range (Enquiry Created)', style: TextStyle(color: Colors.blueGrey, fontSize: 12, fontWeight: FontWeight.w600)),
+                    const Text('Date Range (Enquiry Created)', style: TextStyle(color: Color(0xFF64748B), fontSize: 12, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 8),
                     Row(
                       children: [
@@ -386,7 +278,7 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                                 firstDate: DateTime(2020),
                                 lastDate: DateTime.now(),
                                 builder: (ctx, child) => Theme(
-                                  data: ThemeData.dark(),
+                                  data: ThemeData.light(),
                                   child: child!,
                                 ),
                               );
@@ -395,9 +287,9 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF0F172A),
+                                color: const Color(0xFFF8FAFC),
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: localDateFrom != null ? Colors.blueAccent : Colors.white12),
+                                border: Border.all(color: localDateFrom != null ? Colors.blueAccent : Colors.black12),
                               ),
                               child: Row(
                                 children: [
@@ -405,7 +297,11 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                                   const SizedBox(width: 8),
                                   Text(
                                     localDateFrom != null ? DateFormat('dd MMM yy').format(localDateFrom!) : 'From',
-                                    style: TextStyle(color: localDateFrom != null ? Colors.white : Colors.blueGrey, fontSize: 12),
+                                    style: TextStyle(
+                                      color: localDateFrom != null ? const Color(0xFF1E293B) : Colors.blueGrey,
+                                      fontSize: 12,
+                                      fontWeight: localDateFrom != null ? FontWeight.bold : FontWeight.normal,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -422,7 +318,7 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                                 firstDate: DateTime(2020),
                                 lastDate: DateTime.now().add(const Duration(days: 365)),
                                 builder: (ctx, child) => Theme(
-                                  data: ThemeData.dark(),
+                                  data: ThemeData.light(),
                                   child: child!,
                                 ),
                               );
@@ -431,9 +327,9 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF0F172A),
+                                color: const Color(0xFFF8FAFC),
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: localDateTo != null ? Colors.blueAccent : Colors.white12),
+                                border: Border.all(color: localDateTo != null ? Colors.blueAccent : Colors.black12),
                               ),
                               child: Row(
                                 children: [
@@ -441,7 +337,11 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                                   const SizedBox(width: 8),
                                   Text(
                                     localDateTo != null ? DateFormat('dd MMM yy').format(localDateTo!) : 'To',
-                                    style: TextStyle(color: localDateTo != null ? Colors.white : Colors.blueGrey, fontSize: 12),
+                                    style: TextStyle(
+                                      color: localDateTo != null ? const Color(0xFF1E293B) : Colors.blueGrey,
+                                      fontSize: 12,
+                                      fontWeight: localDateTo != null ? FontWeight.bold : FontWeight.normal,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -450,7 +350,7 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 28),
 
                     // Apply Button
                     SizedBox(
@@ -512,7 +412,7 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              backgroundColor: const Color(0xFF1E293B),
+              backgroundColor: const Color(0xFF1F2937),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               title: const Row(
                 children: [
@@ -579,13 +479,13 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
                           value: selectedCourse,
-                          dropdownColor: const Color(0xFF1E293B),
+                          dropdownColor: const Color(0xFFFFFFFF),
                           style: const TextStyle(color: Colors.white),
                           decoration: const InputDecoration(
                             labelText: 'Course Interested *',
                             labelStyle: TextStyle(color: Colors.blueGrey),
                             filled: true,
-                            fillColor: Color(0xFF0F172A),
+                            fillColor: Color(0xFFF8FAFC),
                             enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.blueGrey)),
                             focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.blueAccent)),
                           ),
@@ -626,13 +526,13 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
                           value: selectedSource,
-                          dropdownColor: const Color(0xFF1E293B),
+                          dropdownColor: const Color(0xFFFFFFFF),
                           style: const TextStyle(color: Colors.white),
                           decoration: const InputDecoration(
                             labelText: 'Source *',
                             labelStyle: TextStyle(color: Colors.blueGrey),
                             filled: true,
-                            fillColor: Color(0xFF0F172A),
+                            fillColor: Color(0xFFF8FAFC),
                             enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.blueGrey)),
                             focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.blueAccent)),
                           ),
@@ -824,7 +724,7 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
         backgroundColor: Colors.transparent,
         child: Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF1E293B),
+            color: const Color(0xFFFFFFFF),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: Colors.orange.withOpacity(0.4)),
           ),
@@ -873,7 +773,7 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0F172A),
+                        color: const Color(0xFFF8FAFC),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: Colors.white10),
                       ),
@@ -1013,13 +913,16 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
     bool showReferralFields = false;
     bool showWalkInField = false;
 
+    bool isSubmitting = false;
+
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              backgroundColor: const Color(0xFF1E293B),
+              backgroundColor: const Color(0xFF1F2937),
               title: Row(
                 children: [
                   const Icon(Icons.add_circle, color: Colors.teal, size: 20),
@@ -1053,9 +956,9 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
                       value: selectedCourse,
-                      dropdownColor: const Color(0xFF1E293B),
+                      dropdownColor: const Color(0xFFFFFFFF),
                       style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(labelText: 'Course *', labelStyle: TextStyle(color: Colors.blueGrey), filled: true, fillColor: Color(0xFF0F172A)),
+                      decoration: const InputDecoration(labelText: 'Course *', labelStyle: TextStyle(color: Colors.blueGrey), filled: true, fillColor: Color(0xFFF8FAFC)),
                       items: const [
                         DropdownMenuItem(value: 'Data Analytics', child: Text('Data Analytics')),
                         DropdownMenuItem(value: 'Data Science', child: Text('Data Science')),
@@ -1076,37 +979,53 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                 ),
               ),
               actions: [
-                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel', style: TextStyle(color: Colors.redAccent))),
+                TextButton(
+                  onPressed: isSubmitting ? null : () => Navigator.pop(context),
+                  child: const Text('Cancel', style: TextStyle(color: Colors.redAccent)),
+                ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
-                  onPressed: () async {
-                    final finalCourse = selectedCourse == 'Other' ? customCourseController.text.trim() : selectedCourse;
-                    if (nameController.text.trim().isEmpty || mobileController.text.trim().isEmpty || (finalCourse ?? '').isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Name, mobile and course are required'), backgroundColor: Colors.orange));
-                      return;
-                    }
-                    try {
-                      final apiService = Provider.of<ApiService>(context, listen: false);
-                      final res = await apiService.postRequest('/enquiries', data: {
-                        'name': nameController.text.trim(),
-                        'mobile': mobileController.text.trim(),
-                        'email': emailController.text.trim(),
-                        'course': finalCourse,
-                        'source': selectedSource,
-                      });
-                      if (res.statusCode == 201 || res.statusCode == 200) {
-                        Navigator.pop(context);
-                        _loadEnquiries(isFirstLoad: true);
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ New course enquiry added'), backgroundColor: Colors.green));
-                      }
-                    } catch (e) {
-                      final errMsg = e is DioException
-                          ? (e.response?.data?['message'] as String? ?? e.message ?? 'Unknown error')
-                          : e.toString();
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $errMsg'), backgroundColor: Colors.redAccent));
-                    }
-                  },
-                  child: const Text('Save', style: TextStyle(color: Colors.white)),
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          final finalCourse = selectedCourse == 'Other' ? customCourseController.text.trim() : selectedCourse;
+                          if (nameController.text.trim().isEmpty || mobileController.text.trim().isEmpty || (finalCourse ?? '').isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Name, mobile and course are required'), backgroundColor: Colors.orange));
+                            return;
+                          }
+                          setState(() {
+                            isSubmitting = true;
+                          });
+                          try {
+                            final apiService = Provider.of<ApiService>(context, listen: false);
+                            final emailVal = emailController.text.trim();
+                            final res = await apiService.postRequest('/enquiries', data: {
+                              'name': nameController.text.trim(),
+                              'mobile': mobileController.text.trim(),
+                              if (emailVal.isNotEmpty) 'email': emailVal,
+                              'course': finalCourse,
+                              'source': selectedSource,
+                            });
+                            if (res.statusCode == 201 || res.statusCode == 200) {
+                              Navigator.pop(context);
+                              _loadEnquiries(isFirstLoad: true);
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ New course enquiry added'), backgroundColor: Colors.green));
+                            }
+                          } catch (e) {
+                            setState(() {
+                              isSubmitting = false;
+                            });
+                            final errMsg = ApiService.getReadableError(e);
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $errMsg'), backgroundColor: Colors.redAccent));
+                          }
+                        },
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                      : const Text('Save', style: TextStyle(color: Colors.white)),
                 ),
               ],
             );
@@ -1120,10 +1039,10 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text('Enquiries & Leads', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF1F2937),
         elevation: 0,
       ),
       floatingActionButton: FloatingActionButton(
@@ -1146,7 +1065,7 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                       hintStyle: const TextStyle(color: Colors.blueGrey),
                       prefixIcon: const Icon(Icons.search, color: Colors.blueGrey),
                       filled: true,
-                      fillColor: const Color(0xFF1E293B),
+                      fillColor: const Color(0xFFFFFFFF),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                       contentPadding: const EdgeInsets.symmetric(vertical: 12),
                     ),
@@ -1167,7 +1086,7 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                         duration: const Duration(milliseconds: 200),
                         padding: const EdgeInsets.all(13),
                         decoration: BoxDecoration(
-                          color: _hasActiveFilters ? Colors.blueAccent : const Color(0xFF1E293B),
+                          color: _hasActiveFilters ? Colors.blueAccent : const Color(0xFFFFFFFF),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: _hasActiveFilters ? Colors.blueAccent : Colors.white12),
                         ),
@@ -1245,7 +1164,7 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                           ),
                         ],
                       ),
-                      backgroundColor: const Color(0xFF1E293B),
+                      backgroundColor: const Color(0xFF1F2937),
                       selectedColor: Colors.blueAccent,
                       side: BorderSide(
                         color: isSelected ? Colors.blueAccent : Colors.white12,
@@ -1322,7 +1241,7 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                            final source = lead['source'] ?? lead['leadSource'] ?? 'Unknown';
 
                            return Card(
-                             color: const Color(0xFF1E293B),
+                             color: const Color(0xFFFFFFFF),
                              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                              child: InkWell(
@@ -1342,7 +1261,7 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                                          Expanded(
                                            child: Text(
                                              lead['name'] ?? 'No Name',
-                                             style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                                             style: const TextStyle(color: Color(0xFF1E293B), fontSize: 16, fontWeight: FontWeight.bold),
                                            ),
                                          ),
                                          Container(
@@ -1369,13 +1288,13 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                                        'Source: $source',
                                        style: const TextStyle(color: Colors.blueGrey, fontSize: 12),
                                      ),
-                                     const Divider(color: Colors.white10, height: 20),
+                                     const Divider(color: Colors.black12, height: 20),
                                      Row(
                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                        children: [
                                          Text(
                                            mobile,
-                                           style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 13, fontWeight: FontWeight.w500),
+                                           style: const TextStyle(color: Color(0xFF64748B), fontSize: 13, fontWeight: FontWeight.w500),
                                          ),
                                          if (mobile.isNotEmpty)
                                            Row(
@@ -1435,6 +1354,14 @@ class EnquiryDetailScreen extends StatefulWidget {
 class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
   bool _isLoading = false;
   Map<String, dynamic>? _detail;
+
+  String _formatTimelineDate(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) return '';
+    final parsed = DateTime.tryParse(dateStr);
+    if (parsed == null) return dateStr;
+    // Format as e.g. "14 Jul, 10:09 AM"
+    return DateFormat('d MMM, hh:mm a').format(parsed.toLocal());
+  }
 
   @override
   void initState() {
@@ -1537,7 +1464,7 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
             builder: (_, scrollCtrl) {
               return Container(
                 decoration: const BoxDecoration(
-                  color: Color(0xFF1E293B),
+                  color: Color(0xFFFFFFFF),
                   borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                 ),
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
@@ -1583,7 +1510,7 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
                             duration: const Duration(milliseconds: 150),
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             decoration: BoxDecoration(
-                              color: isSelected ? color.withOpacity(0.2) : const Color(0xFF0F172A),
+                              color: isSelected ? color.withOpacity(0.2) : const Color(0xFFF8FAFC),
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(color: isSelected ? color : Colors.white12, width: isSelected ? 1.5 : 1),
                             ),
@@ -1622,7 +1549,7 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
                               margin: const EdgeInsets.only(right: 8),
                               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                               decoration: BoxDecoration(
-                                color: isSelected ? Colors.blueAccent.withOpacity(0.2) : const Color(0xFF0F172A),
+                                color: isSelected ? Colors.blueAccent.withOpacity(0.2) : const Color(0xFFF8FAFC),
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(color: isSelected ? Colors.blueAccent : Colors.white12),
                               ),
@@ -1656,7 +1583,7 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0F172A),
+                          color: const Color(0xFFF8FAFC),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: selectedDate != null ? Colors.blueAccent.withOpacity(0.5) : Colors.white12),
                         ),
@@ -1696,7 +1623,7 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
                         hintText: 'e.g. Interested in Python batch, will call back tomorrow...',
                         hintStyle: const TextStyle(color: Colors.white24, fontSize: 13),
                         filled: true,
-                        fillColor: const Color(0xFF0F172A),
+                        fillColor: const Color(0xFFF8FAFC),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(color: Colors.white12),
@@ -1797,23 +1724,23 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Scaffold(
-        backgroundColor: Color(0xFF0F172A),
+        backgroundColor: Color(0xFFF8FAFC),
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
     if (_detail == null) {
       return const Scaffold(
-        backgroundColor: Color(0xFF0F172A),
+        backgroundColor: Color(0xFFF8FAFC),
         body: Center(child: Text('Lead detail not found.', style: TextStyle(color: Colors.blueGrey))),
       );
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: Text(_detail!['name'] ?? 'Lead Details', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF1F2937),
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -1838,7 +1765,7 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+                    colors: [Color(0xFFFFFFFF), Color(0xFFF8FAFC)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -1928,7 +1855,7 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
+                color: const Color(0xFFFFFFFF),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.teal.withOpacity(0.05)),
               ),
@@ -1993,119 +1920,151 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            if ((_detail!['statusHistory'] as List<dynamic>? ?? []).isEmpty)
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(12)),
-                child: const Center(
-                  child: Text(
-                    'No activity notes recorded yet.',
-                    style: TextStyle(color: Colors.blueGrey, fontSize: 13),
-                  ),
-                ),
-              )
-            else
-              ...(_detail!['statusHistory'] as List<dynamic>).reversed.map((historyItem) {
-                final status = historyItem['status'] ?? 'UPDATE';
-                final note = historyItem['note'] ?? '';
-                final changedAt = historyItem['changedAt'] != null 
-                    ? historyItem['changedAt'].toString().split('T')[0] 
-                    : '';
-
-                Color statusColor;
-                Color statusBg;
-                switch (status.toString().toUpperCase()) {
-                  case 'NEW':
-                    statusColor = const Color(0xFF3B82F6);
-                    statusBg = const Color(0xFF3B82F6).withOpacity(0.15);
-                    break;
-                  case 'CONTACTED':
-                    statusColor = const Color(0xFFF59E0B);
-                    statusBg = const Color(0xFFF59E0B).withOpacity(0.15);
-                    break;
-                  case 'INTERESTED':
-                    statusColor = const Color(0xFF10B981);
-                    statusBg = const Color(0xFF10B981).withOpacity(0.15);
-                    break;
-                  case 'NOT_INTERESTED':
-                    statusColor = const Color(0xFFEF4444);
-                    statusBg = const Color(0xFFEF4444).withOpacity(0.15);
-                    break;
-                  case 'ADMITTED':
-                  case 'CONVERTED':
-                    statusColor = const Color(0xFF8B5CF6);
-                    statusBg = const Color(0xFF8B5CF6).withOpacity(0.15);
-                    break;
-                  default:
-                    statusColor = Colors.blueGrey;
-                    statusBg = Colors.blueGrey.withOpacity(0.15);
+            (() {
+              final List<Map<String, dynamic>> items = [];
+              if (_detail!['createdAt'] != null) {
+                items.add({
+                  'status': 'CREATED',
+                  'note': 'Enquiry created',
+                  'changedAt': _detail!['createdAt'],
+                  'changedBy': _detail!['createdBy'],
+                });
+              }
+              final history = _detail!['statusHistory'] as List<dynamic>? ?? [];
+              for (var h in history) {
+                if (h is Map<String, dynamic>) {
+                  items.add(h);
+                } else if (h is Map) {
+                  items.add(Map<String, dynamic>.from(h));
                 }
+              }
 
-                final changedByObj = historyItem['changedBy'];
-                String updaterName = 'System';
-                if (changedByObj is Map) {
-                  updaterName = changedByObj['name'] ?? 'Unknown User';
-                } else if (changedByObj is String) {
-                  if (changedByObj == _detail!['createdBy']?['_id']) {
-                    updaterName = _detail!['createdBy']?['name'] ?? 'Creator';
-                  } else if (changedByObj == _detail!['assignedTo']?['_id']) {
-                    updaterName = _detail!['assignedTo']?['name'] ?? 'Assignee';
-                  } else {
-                    updaterName = 'Staff';
-                  }
-                }
+              // Sort latest first
+              items.sort((a, b) {
+                final dateA = DateTime.tryParse(a['changedAt']?.toString() ?? '') ?? DateTime(2000);
+                final dateB = DateTime.tryParse(b['changedAt']?.toString() ?? '') ?? DateTime(2000);
+                return dateB.compareTo(dateA);
+              });
 
+              if (items.isEmpty) {
                 return Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: statusColor.withOpacity(0.2)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: statusBg,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              status,
-                              style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          Text(
-                            changedAt,
-                            style: const TextStyle(color: Colors.blueGrey, fontSize: 12),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        note,
-                        style: const TextStyle(color: Colors.white, fontSize: 14),
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          const Icon(Icons.person_outline, size: 14, color: Colors.blueGrey),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Updated by: $updaterName',
-                            style: const TextStyle(color: Colors.blueGrey, fontSize: 11, fontStyle: FontStyle.italic),
-                          ),
-                        ],
-                      ),
-                    ],
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(color: const Color(0xFFFFFFFF), borderRadius: BorderRadius.circular(12)),
+                  child: const Center(
+                    child: Text(
+                      'No activity notes recorded yet.',
+                      style: TextStyle(color: Colors.blueGrey, fontSize: 13),
+                    ),
                   ),
                 );
-              }),
+              }
+
+              return Column(
+                children: items.map((historyItem) {
+                  final status = historyItem['status'] ?? 'UPDATE';
+                  final note = historyItem['note'] ?? '';
+                  final changedAt = _formatTimelineDate(historyItem['changedAt']?.toString());
+
+                  Color statusColor;
+                  Color statusBg;
+                  switch (status.toString().toUpperCase()) {
+                    case 'NEW':
+                      statusColor = const Color(0xFF3B82F6);
+                      statusBg = const Color(0xFF3B82F6).withOpacity(0.15);
+                      break;
+                    case 'CONTACTED':
+                      statusColor = const Color(0xFFF59E0B);
+                      statusBg = const Color(0xFFF59E0B).withOpacity(0.15);
+                      break;
+                    case 'INTERESTED':
+                      statusColor = const Color(0xFF10B981);
+                      statusBg = const Color(0xFF10B981).withOpacity(0.15);
+                      break;
+                    case 'NOT_INTERESTED':
+                      statusColor = const Color(0xFFEF4444);
+                      statusBg = const Color(0xFFEF4444).withOpacity(0.15);
+                      break;
+                    case 'ADMITTED':
+                    case 'CONVERTED':
+                      statusColor = const Color(0xFF8B5CF6);
+                      statusBg = const Color(0xFF8B5CF6).withOpacity(0.15);
+                      break;
+                    case 'CREATED':
+                      statusColor = Colors.indigoAccent;
+                      statusBg = Colors.indigoAccent.withOpacity(0.15);
+                      break;
+                    default:
+                      statusColor = Colors.blueGrey;
+                      statusBg = Colors.blueGrey.withOpacity(0.15);
+                  }
+
+                  final changedByObj = historyItem['changedBy'];
+                  String updaterName = 'System';
+                  if (changedByObj is Map) {
+                    updaterName = changedByObj['name'] ?? 'Unknown User';
+                  } else if (changedByObj is String) {
+                    if (changedByObj == _detail!['createdBy']?['_id']) {
+                      updaterName = _detail!['createdBy']?['name'] ?? 'Creator';
+                    } else if (changedByObj == _detail!['assignedTo']?['_id']) {
+                      updaterName = _detail!['assignedTo']?['name'] ?? 'Assignee';
+                    } else {
+                      updaterName = 'Staff';
+                    }
+                  }
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFFFFF),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: statusColor.withOpacity(0.2)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: statusBg,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                status,
+                                style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            Text(
+                              changedAt,
+                              style: const TextStyle(color: Colors.blueGrey, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          note,
+                          style: const TextStyle(color: Color(0xFF1E293B), fontSize: 14),
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            const Icon(Icons.person_outline, size: 14, color: Colors.blueGrey),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Updated by: $updaterName',
+                              style: const TextStyle(color: Colors.blueGrey, fontSize: 11, fontStyle: FontStyle.italic),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              );
+            })(),
           ],
         ),
       ),
@@ -2126,7 +2085,7 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
           const Spacer(),
           Text(
             valStr,
-            style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+            style: const TextStyle(color: Color(0xFF1E293B), fontSize: 14, fontWeight: FontWeight.bold),
           ),
           if (isPhone) ...[
             const SizedBox(width: 10),

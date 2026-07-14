@@ -133,10 +133,10 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text('Admissions & Students', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF1F2937),
         elevation: 0,
       ),
       body: Column(
@@ -178,7 +178,7 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                       hintStyle: const TextStyle(color: Colors.blueGrey, fontSize: 13),
                       prefixIcon: const Icon(Icons.search, color: Colors.blueGrey),
                       filled: true,
-                      fillColor: const Color(0xFF1E293B),
+                      fillColor: const Color(0xFFFFFFFF),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
                     ),
                     onChanged: (val) {
@@ -193,12 +193,12 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B),
+                    color: const Color(0xFFFFFFFF),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: DropdownButton<String>(
                     value: _statusFilter,
-                    dropdownColor: const Color(0xFF1E293B),
+                    dropdownColor: const Color(0xFFFFFFFF),
                     underline: const SizedBox(),
                     style: const TextStyle(color: Colors.white),
                     items: const [
@@ -231,7 +231,7 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                   ),
                   selected: _hasDuesFilter,
                   selectedColor: Colors.amber.shade700,
-                  backgroundColor: const Color(0xFF1E293B),
+                  backgroundColor: const Color(0xFF1F2937),
                   checkmarkColor: Colors.white,
                   onSelected: (bool selected) {
                     setState(() {
@@ -267,7 +267,7 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                            final mobile = student['mobile'] ?? '';
 
                            return Card(
-                             color: const Color(0xFF1E293B),
+                             color: const Color(0xFFFFFFFF),
                              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                              child: InkWell(
@@ -287,7 +287,7 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                                          Expanded(
                                            child: Text(
                                              student['name'] ?? 'No Name',
-                                             style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                                             style: const TextStyle(color: Color(0xFF1E293B), fontSize: 16, fontWeight: FontWeight.bold),
                                            ),
                                          ),
                                          Container(
@@ -314,13 +314,13 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                                        'Pending Fees: ₹$pending',
                                        style: TextStyle(color: pending > 0 ? Colors.redAccent : Colors.blueGrey, fontSize: 12, fontWeight: pending > 0 ? FontWeight.bold : FontWeight.normal),
                                      ),
-                                     const Divider(color: Colors.white10, height: 20),
+                                     const Divider(color: Colors.black12, height: 20),
                                      Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
                                           Text(
                                             mobile,
-                                            style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 12, fontWeight: FontWeight.w500),
+                                            style: const TextStyle(color: Color(0xFF64748B), fontSize: 12, fontWeight: FontWeight.w500),
                                           ),
                                           Row(
                                             children: [
@@ -414,7 +414,7 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? Colors.blue.shade700 : const Color(0xFF1E293B),
+            color: isSelected ? Colors.blue.shade700 : const Color(0xFFFFFFFF),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: isSelected ? Colors.blueAccent : Colors.white.withOpacity(0.05),
@@ -476,7 +476,7 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
           child: StatefulBuilder(
             builder: (context, setDialogState) {
               return AlertDialog(
-                backgroundColor: const Color(0xFF1E293B),
+                backgroundColor: const Color(0xFF1F2937),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 title: Row(
                   children: [
@@ -508,7 +508,7 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF0F172A),
+                            color: const Color(0xFFF8FAFC),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
@@ -607,7 +607,7 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                         // Payment Type dropdown
                         DropdownButtonFormField<String>(
                           value: paymentType,
-                          dropdownColor: const Color(0xFF1E293B),
+                          dropdownColor: const Color(0xFFFFFFFF),
                           style: const TextStyle(color: Colors.white),
                           decoration: const InputDecoration(
                             labelText: 'Payment Type *',
@@ -635,7 +635,7 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                         // Payment Mode dropdown
                         DropdownButtonFormField<String>(
                           value: paymentMode,
-                          dropdownColor: const Color(0xFF1E293B),
+                          dropdownColor: const Color(0xFFFFFFFF),
                           style: const TextStyle(color: Colors.white),
                           decoration: const InputDecoration(
                             labelText: 'Payment Mode *',
@@ -807,7 +807,7 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
         return ScaleTransition(
           scale: CurvedAnimation(parent: anim1, curve: Curves.easeOut),
           child: AlertDialog(
-            backgroundColor: const Color(0xFF1E293B),
+            backgroundColor: const Color(0xFF1F2937),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             title: Row(
               children: [
@@ -838,7 +838,7 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0F172A),
+                        color: const Color(0xFFF8FAFC),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
@@ -1024,7 +1024,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
         return ScaleTransition(
           scale: CurvedAnimation(parent: anim1, curve: Curves.easeOutBack),
           child: AlertDialog(
-            backgroundColor: const Color(0xFF1E293B),
+            backgroundColor: const Color(0xFF1F2937),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -1095,7 +1095,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
         return ScaleTransition(
           scale: CurvedAnimation(parent: anim1, curve: Curves.easeOut),
           child: AlertDialog(
-            backgroundColor: const Color(0xFF1E293B),
+            backgroundColor: const Color(0xFF1F2937),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -1143,7 +1143,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                     Navigator.pop(context); // Close dialog
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0F172A),
+                    backgroundColor: const Color(0xFFF8FAFC),
                     side: const BorderSide(color: Colors.blueGrey, width: 1),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
@@ -1200,7 +1200,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
           child: StatefulBuilder(
             builder: (context, setDialogState) {
               return AlertDialog(
-                backgroundColor: const Color(0xFF1E293B),
+                backgroundColor: const Color(0xFF1F2937),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 title: Row(
                   children: [
@@ -1257,7 +1257,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
                           value: paymentType,
-                          dropdownColor: const Color(0xFF1E293B),
+                          dropdownColor: const Color(0xFFFFFFFF),
                           style: const TextStyle(color: Colors.white),
                           decoration: const InputDecoration(
                             labelText: 'Payment Type *',
@@ -1281,7 +1281,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
                           value: paymentMode,
-                          dropdownColor: const Color(0xFF1E293B),
+                          dropdownColor: const Color(0xFFFFFFFF),
                           style: const TextStyle(color: Colors.white),
                           decoration: const InputDecoration(
                             labelText: 'Payment Mode *',
@@ -1315,10 +1315,10 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                                     colorScheme: const ColorScheme.dark(
                                       primary: Colors.teal,
                                       onPrimary: Colors.white,
-                                      surface: Color(0xFF1E293B),
+                                      surface: Color(0xFFFFFFFF),
                                       onSurface: Colors.white,
                                     ),
-                                    dialogTheme: const DialogThemeData(backgroundColor: Color(0xFF0F172A)),
+                                    dialogTheme: const DialogThemeData(backgroundColor: Color(0xFFF8FAFC)),
                                   ),
                                   child: child!,
                                 );
@@ -1403,7 +1403,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                           _showErrorDialog(msg);
                         }
                       } catch (e) {
-                        _showErrorDialog(e.toString());
+                        _showErrorDialog(ApiService.getReadableError(e));
                       } finally {
                         setState(() {
                           _isLoading = false;
@@ -1468,7 +1468,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF1E293B),
+          backgroundColor: const Color(0xFF1F2937),
           title: const Text('Refund Payment', style: TextStyle(color: Colors.white)),
           content: TextField(
             controller: amountController,
@@ -1539,7 +1539,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
               final isMatching = diff.abs() < 0.01;
 
               return AlertDialog(
-                backgroundColor: const Color(0xFF1E293B),
+                backgroundColor: const Color(0xFF1F2937),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 title: Row(
                   children: [
@@ -1624,10 +1624,10 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                                                 colorScheme: const ColorScheme.dark(
                                                   primary: Colors.teal,
                                                   onPrimary: Colors.white,
-                                                  surface: Color(0xFF1E293B),
+                                                  surface: Color(0xFFFFFFFF),
                                                   onSurface: Colors.white,
                                                 ),
-                                                dialogTheme: const DialogThemeData(backgroundColor: Color(0xFF0F172A)),
+                                                dialogTheme: const DialogThemeData(backgroundColor: Color(0xFFF8FAFC)),
                                               ),
                                               child: child!,
                                             );
@@ -1815,7 +1815,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
           child: StatefulBuilder(
             builder: (context, setDialogState) {
               return AlertDialog(
-                backgroundColor: const Color(0xFF1E293B),
+                backgroundColor: const Color(0xFF1F2937),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 title: Row(
                   children: [
@@ -1872,7 +1872,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
                           value: refundMode,
-                          dropdownColor: const Color(0xFF1E293B),
+                          dropdownColor: const Color(0xFFFFFFFF),
                           style: const TextStyle(color: Colors.white),
                           decoration: const InputDecoration(
                             labelText: 'Refund Mode *',
@@ -2009,7 +2009,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              backgroundColor: const Color(0xFF1E293B),
+              backgroundColor: const Color(0xFF1F2937),
               title: const Text('Drop Student', style: TextStyle(color: Colors.white)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -2101,13 +2101,13 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
 
     if (_isLoading) {
       return const Scaffold(
-        backgroundColor: Color(0xFF0F172A),
+        backgroundColor: Color(0xFFF8FAFC),
         body: Center(child: CircularProgressIndicator()),
       );
     }
     if (_detail == null) {
       return const Scaffold(
-        backgroundColor: Color(0xFF0F172A),
+        backgroundColor: Color(0xFFF8FAFC),
         body: Center(child: Text('Admission details not found.', style: TextStyle(color: Colors.blueGrey))),
       );
     }
@@ -2128,10 +2128,10 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
     final nextDueDateFormatted = nextDueDateRaw != null ? _formatDateString(nextDueDateRaw) : 'N/A';
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: Text(_detail!['name'] ?? 'Student Profile', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF1F2937),
         elevation: 0,
       ),
       bottomNavigationBar: SafeArea(
@@ -2214,7 +2214,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
             // Student summary
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(12)),
+              decoration: BoxDecoration(color: const Color(0xFFFFFFFF), borderRadius: BorderRadius.circular(12)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -2266,7 +2266,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                 if (status == 'OVERDUE') instColor = Colors.redAccent;
 
                 return Card(
-                  color: const Color(0xFF1E293B),
+                  color: const Color(0xFFFFFFFF),
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ListTile(
                     title: Text('Amount: ₹${inst['amount']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -2292,7 +2292,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                 final isVoided = payStatus == 'VOIDED';
 
                 return Card(
-                  color: const Color(0xFF1E293B),
+                  color: const Color(0xFFFFFFFF),
                   margin: const EdgeInsets.only(bottom: 8),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -2348,7 +2348,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
         children: [
           Text(label, style: const TextStyle(color: Colors.blueGrey, fontSize: 14)),
           const Spacer(),
-          Text(valStr, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+          Text(valStr, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 14, fontWeight: FontWeight.bold)),
           if (isMobile) ...[
             const SizedBox(width: 10),
             GestureDetector(
@@ -2378,7 +2378,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: const Color(0xFFFFFFFF),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white.withOpacity(0.03)),
       ),
@@ -2543,11 +2543,11 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
             colorScheme: const ColorScheme.dark(
               primary: Colors.teal,
               onPrimary: Colors.white,
-              surface: Color(0xFF1E293B),
+              surface: Color(0xFFFFFFFF),
               onSurface: Colors.white,
             ),
             dialogTheme: const DialogThemeData(
-              backgroundColor: Color(0xFF0F172A),
+              backgroundColor: Color(0xFFF8FAFC),
             ),
           ),
           child: child!,
@@ -2569,7 +2569,7 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
         return ScaleTransition(
           scale: CurvedAnimation(parent: anim1, curve: Curves.easeOutBack),
           child: AlertDialog(
-            backgroundColor: const Color(0xFF1E293B),
+            backgroundColor: const Color(0xFF1F2937),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -2641,7 +2641,7 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
         return ScaleTransition(
           scale: CurvedAnimation(parent: anim1, curve: Curves.easeOut),
           child: AlertDialog(
-            backgroundColor: const Color(0xFF1E293B),
+            backgroundColor: const Color(0xFF1F2937),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -2689,7 +2689,7 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
                     Navigator.pop(context); // Close dialog
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0F172A),
+                    backgroundColor: const Color(0xFFF8FAFC),
                     side: const BorderSide(color: Colors.blueGrey, width: 1),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
@@ -2772,21 +2772,28 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
       final apiService = Provider.of<ApiService>(context, listen: false);
       final DateFormat df = DateFormat('yyyy-MM-dd');
 
+      // Normalize mobile number
+      String cleanMobile = widget.studentMobile.replaceAll(RegExp(r'\D'), '');
+      if (cleanMobile.startsWith('91') && cleanMobile.length == 11) {
+        cleanMobile = cleanMobile.substring(2);
+      } else if (cleanMobile.startsWith('91') && cleanMobile.length == 12) {
+        cleanMobile = cleanMobile.substring(2);
+      }
+
+      final emailVal = widget.studentEmail.trim();
       final Map<String, dynamic> data = {
         'enquiryId': widget.enquiryId,
         'name': widget.studentName,
-        'mobile': widget.studentMobile,
-        'email': widget.studentEmail,
+        'mobile': cleanMobile,
+        if (emailVal.isNotEmpty) 'email': emailVal,
         'studentName': widget.studentName,
-        'studentMobile': widget.studentMobile,
-        'studentEmail': widget.studentEmail,
+        'studentMobile': cleanMobile,
+        if (emailVal.isNotEmpty) 'studentEmail': emailVal,
         'course': widget.course,
         'totalFees': total,
         'registrationAmount': initial,
         'paymentType': _paymentType,
       };
-
-
 
       if (_paymentType == 'ONE_TIME') {
         data['paymentMethod'] = _paymentMode;
@@ -2819,7 +2826,7 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
         _showErrorDialog(msg);
       }
     } catch (e) {
-      _showErrorDialog(e.toString());
+      _showErrorDialog(ApiService.getReadableError(e));
     } finally {
       setState(() {
         _isLoading = false;
@@ -2830,10 +2837,10 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text('Convert to Admission', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF1F2937),
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -2848,7 +2855,7 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
 
               DropdownButtonFormField<String>(
                 value: _paymentType,
-                dropdownColor: const Color(0xFF1E293B),
+                dropdownColor: const Color(0xFFFFFFFF),
                 style: const TextStyle(color: Colors.white),
                 decoration: const InputDecoration(
                   labelText: 'Payment Type',
@@ -2933,7 +2940,7 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       value: _paymentMode,
-                      dropdownColor: const Color(0xFF1E293B),
+                      dropdownColor: const Color(0xFFFFFFFF),
                       style: const TextStyle(color: Colors.white),
                       decoration: const InputDecoration(
                         labelText: 'Payment Mode',
@@ -3169,7 +3176,11 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
                 child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                      )
                     : const Text('Submit Admission', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ],

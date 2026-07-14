@@ -335,9 +335,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF1F2937),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white70, size: 20),
@@ -465,18 +465,20 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   Widget _buildQuickChips() {
     final chips = [
-      ('Guide / Help', 'help'),
-      ('Aaj Follow-ups', 'aaj ke follow up'),
+      ('Help', 'Help'),
+      ('WhatsApp Msg', 'whatsapp message'),
+      ('Call', 'call'),
+      ('Today\'s Follow-up', 'todays followup'),
+      ('Pending Follow-up', 'pending followup'),
       ('Pending Fees', 'pending fees'),
-      ('Saved Notes', 'saved notes dikhao'),
     ];
 
     return Container(
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: const BoxDecoration(
-        color: Color(0xFF1E293B),
-        border: Border(bottom: BorderSide(color: Colors.white10)),
+        color: Color(0xFFFFFFFF),
+        border: Border(bottom: BorderSide(color: Colors.black12)),
       ),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
@@ -498,7 +500,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 ),
                 child: Text(
                   chips[i].$1,
-                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  style: const TextStyle(color: Color(0xFF667eea), fontSize: 12, fontWeight: FontWeight.w600),
                 ),
               ),
             ),
@@ -551,14 +553,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                             end: Alignment.bottomRight,
                           )
                         : null,
-                    color: msg.isUser ? null : const Color(0xFF1E293B),
+                    color: msg.isUser ? null : const Color(0xFFFFFFFF),
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(16),
                       topRight: const Radius.circular(16),
                       bottomLeft: Radius.circular(msg.isUser ? 16 : 4),
                       bottomRight: Radius.circular(msg.isUser ? 4 : 16),
                     ),
-                    border: msg.isUser ? null : Border.all(color: Colors.white10),
+                    border: msg.isUser ? null : Border.all(color: const Color(0xFFE2E8F0)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -567,7 +569,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       SelectableText(
                         msg.text,
                         style: TextStyle(
-                          color: msg.isUser ? Colors.white : Colors.white.withValues(alpha: 0.88),
+                          color: msg.isUser ? Colors.white : const Color(0xFF1E293B),
                           fontSize: 13.5,
                           height: 1.55,
                         ),
@@ -714,7 +716,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E293B),
+              color: const Color(0xFFFFFFFF),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
@@ -766,7 +768,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         bottom: bottomInset > 0 ? 10 : safeBottomPadding + 10,
       ),
       decoration: const BoxDecoration(
-        color: Color(0xFF1E293B),
+        color: Color(0xFFFFFFFF),
         border: Border(top: BorderSide(color: Colors.white10)),
       ),
       child: Column(
@@ -844,10 +846,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       gradient: _isListening
                           ? const LinearGradient(colors: [Color(0xFFf5576c), Color(0xFFf093fb)])
                           : null,
-                      color: _isListening ? null : Colors.white12,
+                      color: _isListening ? null : Colors.black.withOpacity(0.05),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: _isListening ? Colors.transparent : Colors.white24,
+                        color: _isListening ? Colors.transparent : Colors.black12,
                       ),
                       boxShadow: _isListening
                           ? [
@@ -861,7 +863,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     ),
                     child: Icon(
                       _isListening ? Icons.mic : Icons.mic_none,
-                      color: Colors.white,
+                      color: _isListening ? Colors.white : const Color(0xFF64748B),
                       size: 20,
                     ),
                   ),
@@ -871,7 +873,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               Expanded(
                 child: TextField(
                   controller: _controller,
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                  style: const TextStyle(color: Color(0xFF1E293B), fontSize: 14),
                   maxLines: null,
                   textInputAction: TextInputAction.send,
                   onSubmitted: (_) => _sendMessage(),
@@ -881,13 +883,17 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                         : (_selectedLang == 'hindi'
                             ? 'Hinglish mein puchho... jaise: aaj ke follow up dikhao'
                             : 'Ask in proper English...'),
-                    hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.35), fontSize: 13),
+                    hintStyle: TextStyle(color: Colors.blueGrey.shade400, fontSize: 13),
                     filled: true,
-                    fillColor: Colors.white.withValues(alpha: 0.07),
+                    fillColor: Colors.white,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      borderSide: const BorderSide(color: Colors.black12, width: 1),
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(24),
-                      borderSide: BorderSide.none,
+                      borderSide: const BorderSide(color: Colors.black12, width: 1),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(24),

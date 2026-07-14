@@ -127,8 +127,8 @@ class ApiService {
     return await _dio.put(path, data: data);
   }
 
-  Future<Response> deleteRequest(String path) async {
-    return await _dio.delete(path);
+  Future<Response> deleteRequest(String path, {dynamic data}) async {
+    return await _dio.delete(path, data: data);
   }
 
   static String getReadableError(dynamic error) {

@@ -74,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A), // Slate 900
+      backgroundColor: const Color(0xFFF8FAFC),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -100,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 'SSSAM CRM',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Color(0xFFFFFFFF),
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.0,
@@ -111,7 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 'Sign in to your account',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.blueGrey.shade400,
+                  color: Colors.blueGrey.shade600,
                   fontSize: 16,
                 ),
               ),
@@ -144,16 +144,20 @@ class _LoginScreenState extends State<LoginScreen> {
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Color(0xFFFFFFFF)),
                       decoration: InputDecoration(
                         labelText: 'Email Address',
-                        labelStyle: TextStyle(color: Colors.blueGrey.shade400),
+                        labelStyle: TextStyle(color: Colors.blueGrey.shade600),
                         prefixIcon: const Icon(Icons.email_outlined, color: Colors.blueAccent),
                         filled: true,
-                        fillColor: const Color(0xFF1E293B), // Slate 800
+                        fillColor: Colors.white,
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: Colors.black12, width: 1),
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none,
+                          borderSide: const BorderSide(color: Colors.black12, width: 1),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -174,15 +178,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     TextFormField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Color(0xFFFFFFFF)),
                       decoration: InputDecoration(
                         labelText: 'Password',
-                        labelStyle: TextStyle(color: Colors.blueGrey.shade400),
+                        labelStyle: TextStyle(color: Colors.blueGrey.shade600),
                         prefixIcon: const Icon(Icons.lock_outlined, color: Colors.blueAccent),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                            color: Colors.blueGrey.shade400,
+                            color: Colors.blueGrey.shade600,
                           ),
                           onPressed: () {
                             setState(() {
@@ -191,10 +195,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                         ),
                         filled: true,
-                        fillColor: const Color(0xFF1E293B),
+                        fillColor: Colors.white,
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: Colors.black12, width: 1),
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none,
+                          borderSide: const BorderSide(color: Colors.black12, width: 1),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),

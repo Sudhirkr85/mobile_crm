@@ -198,10 +198,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     final apiService = Provider.of<ApiService>(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text('Attendance Console', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF1F2937),
         elevation: 0,
         actions: [
           IconButton(
@@ -228,7 +228,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B),
+                        color: const Color(0xFFFFFFFF),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
@@ -246,7 +246,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 Text(
                                   apiService.userName ?? 'Employee',
                                   style: const TextStyle(
-                                    color: Colors.white,
+                                    color: Color(0xFF1E293B),
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -284,7 +284,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
                     // Punch Card
                     Card(
-                      color: const Color(0xFF1E293B),
+                      color: const Color(0xFFFFFFFF),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       child: Padding(
                         padding: const EdgeInsets.all(24),
@@ -302,7 +302,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             const SizedBox(height: 8),
                             Text(
                               DateFormat('EEEE, d MMM yyyy').format(DateTime.now()),
-                              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+                              style: const TextStyle(color: Color(0xFF1E293B), fontSize: 16, fontWeight: FontWeight.w500),
                             ),
                             const SizedBox(height: 24),
                             
@@ -372,7 +372,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 Expanded(
                                   child: Text(
                                     _distanceMessage,
-                                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                                    style: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
                                     textAlign: TextAlign.center,
                                   ),
                                 ),
@@ -400,7 +400,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         ),
                         Text(
                           DateFormat('MMMM yyyy').format(_selectedMonth),
-                          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                          style: const TextStyle(color: Color(0xFF1E293B), fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         IconButton(
                           icon: const Icon(Icons.chevron_right, color: Colors.blueAccent),
@@ -465,7 +465,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         return Container(
                           padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1E293B),
+                            color: const Color(0xFFFFFFFF),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(color: color.withOpacity(0.15), width: 1),
                           ),
@@ -558,7 +558,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                   orElse: () => null,
                                 );
 
-                                Color cellColor = const Color(0xFF1E293B);
+                                Color cellColor = const Color(0xFFFFFFFF);
                                 Color textColor = Colors.white;
                                 String statusLabel = '';
                                 String subLabel = '';
@@ -603,7 +603,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                     statusLabel = 'ABSENT';
                                     textColor = Colors.blueGrey.shade400;
                                   } else {
-                                    cellColor = const Color(0xFF1E293B);
+                                    cellColor = const Color(0xFFFFFFFF);
                                     textColor = Colors.white30;
                                   }
                                 }
@@ -693,7 +693,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   void _showDayDetailsBottomSheet(DateTime date, Map<String, dynamic>? record) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1E293B),
+      backgroundColor: const Color(0xFF1F2937),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -770,7 +770,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               ElevatedButton(
                 onPressed: () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0F172A),
+                  backgroundColor: const Color(0xFFF8FAFC),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
@@ -819,7 +819,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         return ScaleTransition(
           scale: CurvedAnimation(parent: anim1, curve: Curves.easeOutBack),
           child: AlertDialog(
-            backgroundColor: const Color(0xFF1E293B),
+            backgroundColor: const Color(0xFF1F2937),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -890,7 +890,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         return ScaleTransition(
           scale: CurvedAnimation(parent: anim1, curve: Curves.easeOut),
           child: AlertDialog(
-            backgroundColor: const Color(0xFF1E293B),
+            backgroundColor: const Color(0xFF1F2937),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -938,7 +938,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0F172A),
+                    backgroundColor: const Color(0xFFF8FAFC),
                     side: const BorderSide(color: Colors.blueGrey, width: 1),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
