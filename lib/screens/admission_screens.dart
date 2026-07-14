@@ -1476,7 +1476,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF1F2937),
         title: const Text('Confirm Void', style: TextStyle(color: Colors.white)),
-        content: const Text('Are you sure you want to void this payment? This action cannot be undone.', style: TextStyle(color: Colors.white75)),
+        content: const Text('Are you sure you want to void this payment? This action cannot be undone.', style: TextStyle(color: Colors.white70)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
