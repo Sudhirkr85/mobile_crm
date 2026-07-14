@@ -445,9 +445,9 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
 
     final amountController = TextEditingController();
     final noteController = TextEditingController();
-    String paymentType = 'installment';
     String paymentMode = 'CASH';
     DateTime paymentDate = DateTime.now();
+    bool isProcessing = false;
     final List<String> modes = ['CASH', 'UPI', 'CARD', 'ONLINE', 'CHEQUE', 'BANK_TRANSFER'];
 
     final installments = student['installments'] as List<dynamic>? ?? [];
@@ -613,33 +613,6 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Payment Type dropdown
-                        DropdownButtonFormField<String>(
-                          value: paymentType,
-                          dropdownColor: const Color(0xFF1F2937),
-                          style: const TextStyle(color: Colors.white),
-                          decoration: const InputDecoration(
-                            labelText: 'Payment Type *',
-                            labelStyle: TextStyle(color: Colors.blueGrey),
-                            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.blueGrey)),
-                          ),
-                          items: const [
-                            DropdownMenuItem(value: 'installment', child: Text('Installment Payment')),
-                            DropdownMenuItem(value: 'full', child: Text('Full Payment')),
-                            DropdownMenuItem(value: 'admission', child: Text('Admission/Registration Fee')),
-                          ],
-                          onChanged: (val) {
-                            if (val != null) {
-                              setDialogState(() {
-                                paymentType = val;
-                                if (paymentType == 'full') {
-                                  amountController.text = remainingAmount.toStringAsFixed(0);
-                                }
-                              });
-                            }
-                          },
-                        ),
-                        const SizedBox(height: 16),
 
                         // Payment Mode dropdown
                         DropdownButtonFormField<String>(
@@ -672,6 +645,20 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                               initialDate: paymentDate,
                               firstDate: DateTime(2020),
                               lastDate: DateTime(2100),
+                              builder: (context, child) {
+                                return Theme(
+                                  data: ThemeData.light().copyWith(
+                                    colorScheme: const ColorScheme.light(
+                                      primary: Color(0xFF1F2937),
+                                      onPrimary: Colors.white,
+                                      surface: Colors.white,
+                                      onSurface: Color(0xFF1F2937),
+                                    ),
+                                    dialogBackgroundColor: Colors.white,
+                                  ),
+                                  child: child!,
+                                );
+                              },
                             );
                             if (picked != null) {
                               setDialogState(() {
@@ -721,35 +708,37 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                    onPressed: () async {
+                    onPressed: isProcessing ? null : () async {
                       final amountText = amountController.text.trim();
                       if (amountText.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter amount')));
+                        showDialog(context: context, builder: (_) => AlertDialog(
+                          title: const Text('Validation Error'),
+                          content: const Text('Please enter the payment amount.'),
+                          actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
+                        ));
                         return;
                       }
                       final amount = double.tryParse(amountText) ?? 0.0;
                       if (amount <= 0) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Amount must be greater than zero')));
+                        showDialog(context: context, builder: (_) => AlertDialog(
+                          title: const Text('Validation Error'),
+                          content: const Text('Amount must be greater than zero.'),
+                          actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
+                        ));
                         return;
                       }
-
-                      if (paymentType == 'full' && (amount - remainingAmount).abs() > 0.01) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('For Full Payment type, amount must equal remaining balance exactly')));
-                        return;
-                      }
-
+                      setDialogState(() { isProcessing = true; });
                       final apiService = Provider.of<ApiService>(context, listen: false);
                       final df = DateFormat('yyyy-MM-dd');
                       final data = {
                         'amount': amount,
-                        'paymentType': paymentType.toUpperCase(),
+                        'paymentType': 'INSTALLMENT',
                         'paymentMode': paymentMode,
                         'paymentDate': df.format(paymentDate),
                         'note': noteController.text.trim(),
                       };
-
                       try {
-                        final res = await apiService.postRequest('/admissions/${student['_id']}/payments', data: data);
+                        final res = await apiService.postRequest('/admissions/\${student[\'_id\']}/payments', data: data);
                         if (res.statusCode == 200 || res.statusCode == 210) {
                           if (context.mounted) Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -757,14 +746,26 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                           );
                           _loadAdmissions(isFirstLoad: true);
                         } else {
-                          String msg = res.data?['message'] ?? 'Failed to record payment';
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+                          setDialogState(() { isProcessing = false; });
+                          final msg = res.data?['message'] ?? 'Failed to record payment';
+                          showDialog(context: context, builder: (_) => AlertDialog(
+                            title: const Text('Payment Failed'),
+                            content: Text(msg),
+                            actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
+                          ));
                         }
                       } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to record payment: ${ApiService.getReadableError(e)}')));
+                        setDialogState(() { isProcessing = false; });
+                        showDialog(context: context, builder: (_) => AlertDialog(
+                          title: const Text('Payment Failed'),
+                          content: Text(ApiService.getReadableError(e)),
+                          actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
+                        ));
                       }
                     },
-                    child: const Text('Save Payment', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    child: isProcessing
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Text('Save Payment', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
@@ -1330,14 +1331,14 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                               lastDate: DateTime(2100),
                               builder: (context, child) {
                                 return Theme(
-                                  data: Theme.of(context).copyWith(
-                                    colorScheme: const ColorScheme.dark(
+                                  data: ThemeData.light().copyWith(
+                                    colorScheme: const ColorScheme.light(
                                       primary: Colors.teal,
                                       onPrimary: Colors.white,
-                                      surface: Color(0xFFFFFFFF),
-                                      onSurface: Colors.white,
+                                      surface: Colors.white,
+                                      onSurface: Color(0xFF1F2937),
                                     ),
-                                    dialogTheme: const DialogThemeData(backgroundColor: Color(0xFFF8FAFC)),
+                                    dialogBackgroundColor: Colors.white,
                                   ),
                                   child: child!,
                                 );
@@ -1649,14 +1650,14 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                                           lastDate: DateTime(2100),
                                           builder: (context, child) {
                                             return Theme(
-                                              data: Theme.of(context).copyWith(
-                                                colorScheme: const ColorScheme.dark(
+                                              data: ThemeData.light().copyWith(
+                                                colorScheme: const ColorScheme.light(
                                                   primary: Colors.teal,
                                                   onPrimary: Colors.white,
-                                                  surface: Color(0xFFFFFFFF),
-                                                  onSurface: Colors.white,
+                                                  surface: Colors.white,
+                                                  onSurface: Color(0xFF1F2937),
                                                 ),
-                                                dialogTheme: const DialogThemeData(backgroundColor: Color(0xFFF8FAFC)),
+                                                dialogBackgroundColor: Colors.white,
                                               ),
                                               child: child!,
                                             );
@@ -2589,16 +2590,14 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
       lastDate: lastDate ?? DateTime(2100),
       builder: (context, child) {
         return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.dark(
+          data: ThemeData.light().copyWith(
+            colorScheme: const ColorScheme.light(
               primary: Colors.teal,
               onPrimary: Colors.white,
-              surface: Color(0xFFFFFFFF),
-              onSurface: Colors.white,
+              surface: Colors.white,
+              onSurface: Color(0xFF1F2937),
             ),
-            dialogTheme: const DialogThemeData(
-              backgroundColor: Color(0xFFF8FAFC),
-            ),
+            dialogBackgroundColor: Colors.white,
           ),
           child: child!,
         );

@@ -629,14 +629,14 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                           final finalCourse = selectedCourse == 'Other' ? customCourseController.text.trim() : selectedCourse;
                           final cleanMobile = mobileController.text.replaceAll(' ', '');
 
+                          final emailVal = emailController.text.trim();
                           final dataPayload = <String, dynamic>{
                             'name': nameController.text.trim(),
                             'mobile': cleanMobile,
-                            'email': emailController.text.trim().isEmpty ? null : emailController.text.trim(),
                             'course': finalCourse,
                             'source': selectedSource,
-                            'notes': '',
                           };
+                          if (emailVal.isNotEmpty) dataPayload['email'] = emailVal;
 
                           if (selectedSource == 'referral') {
                             dataPayload['referenceName'] = referenceNameController.text.trim();
@@ -1697,6 +1697,17 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
                                     payload['followUpDate'] = DateFormat('yyyy-MM-dd').format(selectedDate!);
                                   } else if (currentStatus == 'NOT_INTERESTED') {
                                     payload['followUpDate'] = null;
+                                  } else if (currentStatus == 'CONTACTED') {
+                                    // CONTACTED requires follow-up date
+                                    setSheet(() { isSaving = false; });
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('⚠️ Please select a follow-up date when status is Contacted'),
+                                        backgroundColor: Colors.orange,
+                                        duration: Duration(seconds: 3),
+                                      ),
+                                    );
+                                    return;
                                   }
 
                                   final res = await apiService.putRequest(
