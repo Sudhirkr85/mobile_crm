@@ -1471,57 +1471,159 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
   }
 
   Future<void> _handleVoidPayment(String paymentId) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1F2937),
+        title: const Text('Confirm Void', style: TextStyle(color: Colors.white)),
+        content: const Text('Are you sure you want to void this payment? This action cannot be undone.', style: TextStyle(color: Colors.white75)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.blueGrey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Void', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
     try {
       final apiService = Provider.of<ApiService>(context, listen: false);
       final res = await apiService.postRequest('/payments/$paymentId/void');
       if (res.statusCode == 200) {
         _loadDetails();
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payment voided successfully!'), backgroundColor: Colors.green));
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Success'),
+            content: const Text('Payment has been successfully voided.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('OK'),
+              )
+            ],
+          ),
+        );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Void failed: ${ApiService.getReadableError(e)}')));
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Void Failed'),
+          content: Text(ApiService.getReadableError(e)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK'),
+            )
+          ],
+        ),
+      );
     }
   }
 
   Future<void> _handleRefundPayment(String paymentId) async {
     final amountController = TextEditingController();
+    bool isProcessingRefund = false;
+
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFF1F2937),
-          title: const Text('Refund Payment', style: TextStyle(color: Colors.white)),
-          content: TextField(
-            controller: amountController,
-            keyboardType: TextInputType.number,
-            style: const TextStyle(color: Colors.white),
-            decoration: const InputDecoration(labelText: 'Refund Amount (₹)', labelStyle: TextStyle(color: Colors.blueGrey)),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel', style: TextStyle(color: Colors.redAccent)),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                try {
-                  final apiService = Provider.of<ApiService>(context, listen: false);
-                  final amount = double.parse(amountController.text);
-                  final res = await apiService.postRequest('/payments/$paymentId/refund', data: {
-                    'amount': amount,
-                  });
-                  if (res.statusCode == 200) {
-                    Navigator.pop(context);
-                    _loadDetails();
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payment refunded successfully!'), backgroundColor: Colors.green));
-                  }
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Refund failed: ${ApiService.getReadableError(e)}')));
-                }
-              },
-              child: const Text('Refund'),
-            )
-          ],
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF1F2937),
+              title: const Text('Refund Payment', style: TextStyle(color: Colors.white)),
+              content: TextField(
+                controller: amountController,
+                keyboardType: TextInputType.number,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  labelText: 'Refund Amount (₹)',
+                  labelStyle: TextStyle(color: Colors.blueGrey),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isProcessingRefund ? null : () => Navigator.pop(context),
+                  child: const Text('Cancel', style: TextStyle(color: Colors.redAccent)),
+                ),
+                ElevatedButton(
+                  onPressed: isProcessingRefund ? null : () async {
+                    final amountText = amountController.text.trim();
+                    if (amountText.isEmpty) {
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Validation Error'),
+                          content: const Text('Please enter the refund amount.'),
+                          actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
+                        ),
+                      );
+                      return;
+                    }
+                    final amount = double.tryParse(amountText) ?? 0.0;
+                    if (amount <= 0) {
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Validation Error'),
+                          content: const Text('Amount must be greater than zero.'),
+                          actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
+                        ),
+                      );
+                      return;
+                    }
+
+                    setDialogState(() {
+                      isProcessingRefund = true;
+                    });
+
+                    try {
+                      final apiService = Provider.of<ApiService>(context, listen: false);
+                      final res = await apiService.postRequest('/payments/$paymentId/refund', data: {
+                        'amount': amount,
+                      });
+                      if (res.statusCode == 200) {
+                        Navigator.pop(context);
+                        _loadDetails();
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('Success'),
+                            content: const Text('Refund processed successfully.'),
+                            actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      setDialogState(() {
+                        isProcessingRefund = false;
+                      });
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Refund Failed'),
+                          content: Text(ApiService.getReadableError(e)),
+                          actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
+                        ),
+                      );
+                    }
+                  },
+                  child: isProcessingRefund
+                      ? const SizedBox(width: 15, height: 15, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Text('Refund'),
+                )
+              ],
+            );
+          },
         );
       },
     );
