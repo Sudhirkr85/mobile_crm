@@ -200,7 +200,7 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                     value: _statusFilter,
                     dropdownColor: const Color(0xFFFFFFFF),
                     underline: const SizedBox(),
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Color(0xFF1E293B)),
                     items: const [
                       DropdownMenuItem(value: 'ALL', child: Text('All')),
                       DropdownMenuItem(value: 'Active', child: Text('Active')),
@@ -475,8 +475,10 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
           scale: CurvedAnimation(parent: anim1, curve: Curves.easeOut),
           child: StatefulBuilder(
             builder: (context, setDialogState) {
-              return AlertDialog(
-                backgroundColor: const Color(0xFF1F2937),
+              return Theme(
+                data: ThemeData(brightness: Brightness.dark, primaryColor: Colors.green),
+                child: AlertDialog(
+                  backgroundColor: const Color(0xFF1F2937),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 title: Row(
                   children: [
@@ -607,7 +609,7 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                         // Payment Type dropdown
                         DropdownButtonFormField<String>(
                           value: paymentType,
-                          dropdownColor: const Color(0xFFFFFFFF),
+                          dropdownColor: const Color(0xFF1F2937),
                           style: const TextStyle(color: Colors.white),
                           decoration: const InputDecoration(
                             labelText: 'Payment Type *',
@@ -635,7 +637,7 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                         // Payment Mode dropdown
                         DropdownButtonFormField<String>(
                           value: paymentMode,
-                          dropdownColor: const Color(0xFFFFFFFF),
+                          dropdownColor: const Color(0xFF1F2937),
                           style: const TextStyle(color: Colors.white),
                           decoration: const InputDecoration(
                             labelText: 'Payment Mode *',
@@ -758,12 +760,13 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                     child: const Text('Save Payment', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ),
                 ],
-              );
-            },
-          ),
-        );
-      },
-    );
+              ),
+            );
+          },
+        ),
+      );
+    },
+  );
   }
 
   Future<void> _showPaymentHistoryFromList(dynamic student) async {
@@ -1199,8 +1202,10 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
           scale: CurvedAnimation(parent: anim1, curve: Curves.easeOut),
           child: StatefulBuilder(
             builder: (context, setDialogState) {
-              return AlertDialog(
-                backgroundColor: const Color(0xFF1F2937),
+              return Theme(
+                data: ThemeData(brightness: Brightness.dark, primaryColor: Colors.green),
+                child: AlertDialog(
+                  backgroundColor: const Color(0xFF1F2937),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 title: Row(
                   children: [
@@ -1257,7 +1262,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
                           value: paymentType,
-                          dropdownColor: const Color(0xFFFFFFFF),
+                          dropdownColor: const Color(0xFF1F2937),
                           style: const TextStyle(color: Colors.white),
                           decoration: const InputDecoration(
                             labelText: 'Payment Type *',
@@ -1281,7 +1286,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
                           value: paymentMode,
-                          dropdownColor: const Color(0xFFFFFFFF),
+                          dropdownColor: const Color(0xFF1F2937),
                           style: const TextStyle(color: Colors.white),
                           decoration: const InputDecoration(
                             labelText: 'Payment Mode *',
@@ -1417,13 +1422,14 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                     child: const Text('Save Payment', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ),
                 ],
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
+              ),
+            );
+          },
+        ),
+      );
+    },
+  );
+}
 
   Future<void> _makeCall(String mobile) async {
     final Uri uri = Uri(scheme: 'tel', path: mobile);
@@ -1538,8 +1544,10 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
               final diff = remainingInstallmentBalance - currentSum;
               final isMatching = diff.abs() < 0.01;
 
-              return AlertDialog(
-                backgroundColor: const Color(0xFF1F2937),
+              return Theme(
+                data: ThemeData(brightness: Brightness.dark, primaryColor: Colors.amber),
+                child: AlertDialog(
+                  backgroundColor: const Color(0xFF1F2937),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 title: Row(
                   children: [
@@ -1770,13 +1778,14 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                     child: const Text('Save Plan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ),
                 ],
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
+              ),
+            );
+          },
+        ),
+      );
+    },
+  );
+}
 
   Future<void> _refundAdmission(double maxRefundable) async {
     final amountController = TextEditingController();
@@ -1814,8 +1823,10 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
           scale: CurvedAnimation(parent: anim1, curve: Curves.easeOut),
           child: StatefulBuilder(
             builder: (context, setDialogState) {
-              return AlertDialog(
-                backgroundColor: const Color(0xFF1F2937),
+              return Theme(
+                data: ThemeData(brightness: Brightness.dark, primaryColor: Colors.orange),
+                child: AlertDialog(
+                  backgroundColor: const Color(0xFF1F2937),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 title: Row(
                   children: [
@@ -1872,7 +1883,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
                           value: refundMode,
-                          dropdownColor: const Color(0xFFFFFFFF),
+                          dropdownColor: const Color(0xFF1F2937),
                           style: const TextStyle(color: Colors.white),
                           decoration: const InputDecoration(
                             labelText: 'Refund Mode *',
@@ -1991,13 +2002,14 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                     child: const Text('Process Refund', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ),
                 ],
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
+              ),
+            );
+          },
+        ),
+      );
+    },
+  );
+}
 
   Future<void> _handleDropStudent() async {
     final reasonController = TextEditingController();
@@ -2006,10 +2018,12 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
     showDialog(
       context: context,
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              backgroundColor: const Color(0xFF1F2937),
+        return Theme(
+          data: ThemeData(brightness: Brightness.dark, primaryColor: Colors.redAccent),
+          child: StatefulBuilder(
+            builder: (context, setDialogState) {
+              return AlertDialog(
+                backgroundColor: const Color(0xFF1F2937),
               title: const Text('Drop Student', style: TextStyle(color: Colors.white)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -2078,11 +2092,12 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                 )
               ],
             );
-          }
-        );
-      },
-    );
-  }
+          },
+        ),
+      );
+    },
+  );
+}
 
   String _formatDateString(dynamic dateObj) {
     if (dateObj == null) return '';
@@ -2234,7 +2249,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
             // Financial Summary
             const Text(
               'FINANCIAL SUMMARY',
-              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(color: Color(0xFF1E293B), fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             GridView.count(
@@ -2257,7 +2272,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
 
             // Installment Plan list
             if (installments.isNotEmpty) ...[
-              const Text('INSTALLMENT SCHEDULES', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+              const Text('INSTALLMENT SCHEDULES', style: TextStyle(color: Color(0xFF1E293B), fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
               ...installments.map((inst) {
                 final status = inst['status'] ?? 'PENDING';
@@ -2269,7 +2284,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                   color: const Color(0xFFFFFFFF),
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ListTile(
-                    title: Text('Amount: ₹${inst['amount']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    title: Text('Amount: ₹${inst['amount']}', style: const TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold)),
                     subtitle: Text('Due Date: ${_formatDateString(inst['dueDate'])}', style: TextStyle(color: Colors.blueGrey.shade400)),
                     trailing: Chip(
                       label: Text(status, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
@@ -2283,7 +2298,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
 
             // Payments Ledger History
             if (_payments.isNotEmpty) ...[
-              const Text('PAYMENTS LEDGER', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+              const Text('PAYMENTS LEDGER', style: TextStyle(color: Color(0xFF1E293B), fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
               ..._payments.map((pay) {
                 final id = pay['_id'];
@@ -2300,7 +2315,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                       children: [
                         ListTile(
                           contentPadding: EdgeInsets.zero,
-                          title: Text('Amount: ₹${pay['amount']} ($payType)', style: TextStyle(color: Colors.white, decoration: isVoided ? TextDecoration.lineThrough : null)),
+                          title: Text('Amount: ₹${pay['amount']} ($payType)', style: TextStyle(color: const Color(0xFF1E293B), decoration: isVoided ? TextDecoration.lineThrough : null)),
                           subtitle: Text('Mode: ${pay['paymentMode']} | Date: ${_formatDateString(pay['paymentDate'] ?? pay['createdAt'])}', style: TextStyle(color: Colors.blueGrey.shade400)),
                           trailing: Chip(
                             label: Text(payStatus, style: const TextStyle(color: Colors.white, fontSize: 10)),
@@ -2856,7 +2871,7 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
               DropdownButtonFormField<String>(
                 value: _paymentType,
                 dropdownColor: const Color(0xFFFFFFFF),
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: Color(0xFF1E293B)),
                 decoration: const InputDecoration(
                   labelText: 'Payment Type',
                   labelStyle: TextStyle(color: Colors.blueGrey),
@@ -2880,7 +2895,7 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
               TextFormField(
                 controller: _totalFeesController,
                 keyboardType: TextInputType.number,
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: Color(0xFF1E293B)),
                 decoration: const InputDecoration(
                   labelText: 'Total Fees (₹) *',
                   labelStyle: TextStyle(color: Colors.blueGrey),
@@ -2896,7 +2911,7 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
               TextFormField(
                 controller: _regAmountController,
                 keyboardType: TextInputType.number,
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: Color(0xFF1E293B)),
                 decoration: const InputDecoration(
                   labelText: 'Initial Payment / Registration Paid (₹) *',
                   labelStyle: TextStyle(color: Colors.blueGrey),
@@ -2931,7 +2946,7 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
                         ),
                         child: Text(
                           DateFormat('dd MMM yyyy').format(_initialPaymentDate),
-                          style: const TextStyle(color: Colors.white),
+                          style: const TextStyle(color: Color(0xFF1E293B)),
                         ),
                       ),
                     ),
@@ -2941,7 +2956,7 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
                     child: DropdownButtonFormField<String>(
                       value: _paymentMode,
                       dropdownColor: const Color(0xFFFFFFFF),
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Color(0xFF1E293B)),
                       decoration: const InputDecoration(
                         labelText: 'Payment Mode',
                         labelStyle: TextStyle(color: Colors.blueGrey),
@@ -2976,11 +2991,11 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
                   children: [
                     const Text(
                       'Remaining Balance:',
-                      style: TextStyle(color: Colors.tealAccent, fontSize: 16, fontWeight: FontWeight.w500),
+                      style: TextStyle(color: Color(0xFF0F766E), fontSize: 16, fontWeight: FontWeight.w500),
                     ),
                     Text(
                       '₹${_remainingAmount.toStringAsFixed(0)}',
-                      style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                      style: const TextStyle(color: Color(0xFF1E293B), fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -3012,7 +3027,7 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
                               ),
                               child: Text(
                                 '₹${_remainingAmount.toStringAsFixed(0)}',
-                                style: const TextStyle(color: Colors.white, fontSize: 16),
+                                style: const TextStyle(color: Color(0xFF1E293B), fontSize: 16),
                               ),
                             ),
                           ),
@@ -3040,7 +3055,7 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
                                       ? DateFormat('dd MMM yyyy').format(_pendingDueDate!)
                                       : 'Select Date',
                                   style: TextStyle(
-                                    color: _pendingDueDate != null ? Colors.white : Colors.amber,
+                                    color: _pendingDueDate != null ? const Color(0xFF1E293B) : Colors.amber.shade800,
                                   ),
                                 ),
                               ),
@@ -3059,7 +3074,7 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
                   children: [
                     const Text(
                       'Future Installments',
-                      style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: Color(0xFF1E293B), fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     TextButton.icon(
                       onPressed: _addInstallmentRow,
@@ -3083,7 +3098,7 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
                             child: TextFormField(
                               controller: row.amountController,
                               keyboardType: TextInputType.number,
-                              style: const TextStyle(color: Colors.white),
+                              style: const TextStyle(color: Color(0xFF1E293B)),
                               decoration: InputDecoration(
                                 labelText: 'Amount (₹) *',
                                 labelStyle: const TextStyle(color: Colors.blueGrey),
@@ -3121,7 +3136,7 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
                                       ? DateFormat('dd MMM yyyy').format(row.dueDate!)
                                       : 'Select Date',
                                   style: TextStyle(
-                                    color: row.dueDate != null ? Colors.white : Colors.tealAccent,
+                                    color: row.dueDate != null ? const Color(0xFF1E293B) : const Color(0xFF0F766E),
                                     fontSize: 13,
                                   ),
                                 ),

@@ -409,10 +409,12 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              backgroundColor: const Color(0xFF1F2937),
+        return Theme(
+          data: ThemeData(brightness: Brightness.dark, primaryColor: Colors.blueAccent),
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              return AlertDialog(
+                backgroundColor: const Color(0xFF1F2937),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               title: const Row(
                 children: [
@@ -692,10 +694,11 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
               ],
             );
           },
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
 
   void _showDuplicateDialog(Map<String, dynamic> existing, String newName, String newMobile) {
     final status = existing['status']?.toString();
@@ -919,10 +922,12 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              backgroundColor: const Color(0xFF1F2937),
+        return Theme(
+          data: ThemeData(brightness: Brightness.dark, primaryColor: Colors.teal),
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              return AlertDialog(
+                backgroundColor: const Color(0xFF1F2937),
               title: Row(
                 children: [
                   const Icon(Icons.add_circle, color: Colors.teal, size: 20),
@@ -1030,10 +1035,11 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
               ],
             );
           },
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
 
 
   @override
@@ -1476,7 +1482,7 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
                       child: Container(
                         width: 40, height: 4,
                         margin: const EdgeInsets.only(bottom: 16),
-                        decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(4)),
+                        decoration: BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.circular(4)),
                       ),
                     ),
 
@@ -1485,7 +1491,7 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
                       children: [
                         const Icon(Icons.phone_callback, color: Colors.blueAccent, size: 20),
                         const SizedBox(width: 8),
-                        const Text('Update Status & Follow-up', style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold)),
+                        const Text('Update Status & Follow-up', style: TextStyle(color: Color(0xFF1E293B), fontSize: 17, fontWeight: FontWeight.bold)),
                       ],
                     ),
                     const SizedBox(height: 6),
@@ -1493,7 +1499,7 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
                       _detail!['name'] ?? '',
                       style: const TextStyle(color: Colors.blueGrey, fontSize: 13),
                     ),
-                    const Divider(color: Colors.white12, height: 24),
+                    const Divider(color: Colors.black12, height: 24),
 
                     // Status Selection
                     const Text('Lead Status', style: TextStyle(color: Colors.blueGrey, fontSize: 12, fontWeight: FontWeight.w600)),
@@ -1512,7 +1518,7 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
                             decoration: BoxDecoration(
                               color: isSelected ? color.withOpacity(0.2) : const Color(0xFFF8FAFC),
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: isSelected ? color : Colors.white12, width: isSelected ? 1.5 : 1),
+                              border: Border.all(color: isSelected ? color : Colors.black12, width: isSelected ? 1.5 : 1),
                             ),
                             child: Text(
                               s['label'] as String,
@@ -1551,7 +1557,7 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
                               decoration: BoxDecoration(
                                 color: isSelected ? Colors.blueAccent.withOpacity(0.2) : const Color(0xFFF8FAFC),
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: isSelected ? Colors.blueAccent : Colors.white12),
+                                border: Border.all(color: isSelected ? Colors.blueAccent : Colors.black12),
                               ),
                               child: Text(
                                 q['label'] as String,
@@ -1576,7 +1582,7 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
                           initialDate: selectedDate ?? DateTime.now(),
                           firstDate: DateTime.now().subtract(const Duration(days: 7)),
                           lastDate: DateTime.now().add(const Duration(days: 365)),
-                          builder: (ctx, child) => Theme(data: ThemeData.dark(), child: child!),
+                          builder: (ctx, child) => Theme(data: ThemeData.light(), child: child!),
                         );
                         if (picked != null) setSheet(() => selectedDate = picked);
                       },
@@ -1585,7 +1591,7 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
                         decoration: BoxDecoration(
                           color: const Color(0xFFF8FAFC),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: selectedDate != null ? Colors.blueAccent.withOpacity(0.5) : Colors.white12),
+                          border: Border.all(color: selectedDate != null ? Colors.blueAccent.withOpacity(0.5) : Colors.black12),
                         ),
                         child: Row(
                           children: [
@@ -1596,7 +1602,7 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
                                   ? DateFormat('EEEE, dd MMM yyyy').format(selectedDate!)
                                   : 'Choose a custom date...',
                               style: TextStyle(
-                                color: selectedDate != null ? Colors.white : Colors.blueGrey,
+                                color: selectedDate != null ? const Color(0xFF1E293B) : Colors.blueGrey,
                                 fontSize: 13,
                               ),
                             ),
@@ -1618,19 +1624,19 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
                     TextField(
                       controller: noteController,
                       maxLines: 3,
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                      style: const TextStyle(color: Color(0xFF1E293B), fontSize: 14),
                       decoration: InputDecoration(
                         hintText: 'e.g. Interested in Python batch, will call back tomorrow...',
-                        hintStyle: const TextStyle(color: Colors.white24, fontSize: 13),
+                        hintStyle: TextStyle(color: Colors.blueGrey.shade400, fontSize: 13),
                         filled: true,
                         fillColor: const Color(0xFFF8FAFC),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Colors.white12),
+                          borderSide: const BorderSide(color: Colors.black12),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Colors.white12),
+                          borderSide: const BorderSide(color: Colors.black12),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -1914,9 +1920,9 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
             // Timeline notes
             const Row(
               children: [
-                Icon(Icons.history, color: Colors.white70, size: 18),
+                Icon(Icons.history, color: Colors.blueGrey, size: 18),
                 SizedBox(width: 8),
-                Text('TIMELINE & NOTES', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                Text('TIMELINE & NOTES', style: TextStyle(color: Color(0xFF1E293B), fontSize: 16, fontWeight: FontWeight.bold)),
               ],
             ),
             const SizedBox(height: 16),
