@@ -315,8 +315,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFF8FAFC),
-                    side: const BorderSide(color: Colors.blueGrey, width: 1),
+                    backgroundColor: Colors.redAccent,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                   ),
