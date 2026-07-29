@@ -172,7 +172,7 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
               children: [
                 Expanded(
                   child: TextField(
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Color(0xFF1E293B), fontSize: 14),
                     decoration: InputDecoration(
                       hintText: 'Search by Name, Mobile & Course...',
                       hintStyle: const TextStyle(color: Colors.blueGrey, fontSize: 13),

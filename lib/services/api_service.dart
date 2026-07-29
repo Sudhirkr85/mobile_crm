@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static const String defaultBaseUrl = 'https://sssam-r3pz.onrender.com/api';
+  static const String defaultBaseUrl = 'https://crm.sssamacademy.com/api';
   
   final Dio _dio = Dio(BaseOptions(
     baseUrl: defaultBaseUrl,
