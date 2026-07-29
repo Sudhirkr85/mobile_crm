@@ -370,8 +370,8 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
     final counselorName = apiService.userName ?? 'representative';
 
     final message = "Hi $name,\n\n"
-        "This is $counselorName from SSSAM Academy, Gurgaon.\n\n"
-        "Regarding your $course enquiry, please let me know a convenient time to connect.";
+        "This is $counselorName from SSSAM Academy, Gurgaon, regarding your $course enquiry.\n\n"
+        "How can I help you today?";
 
     final encodedMessage = Uri.encodeComponent(message);
     final Uri uri = Uri.parse("https://wa.me/$formattedMobile?text=$encodedMessage");
