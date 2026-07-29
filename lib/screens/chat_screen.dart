@@ -787,7 +787,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           final name = item['name'];
           final mobile = item['mobile'].toString();
           final course = item['course'];
-          final cleanExtra = (extra as String? ?? '').replaceAll(RegExp(r'Time:\s*[^•|]+', caseSensitive: false), '').replaceAll(RegExp(r'Follow-up:\s*[^•|]+', caseSensitive: false), '').trim();
+          final status = item['status'] ?? '';
+          final extra = item['extra'] ?? '';
+          final cleanExtra = (extra as String).replaceAll(RegExp(r'Time:\s*[^•|]+', caseSensitive: false), '').replaceAll(RegExp(r'Follow-up:\s*[^•|]+', caseSensitive: false), '').trim();
 
           return Container(
             margin: const EdgeInsets.only(bottom: 6),
