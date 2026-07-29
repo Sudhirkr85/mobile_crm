@@ -793,8 +793,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           final recentNotes = item['recentNotes'] as List?;
 
           return Container(
-            margin: const EdgeInsets.only(bottom: 10),
-            padding: const EdgeInsets.all(12),
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
@@ -802,108 +802,121 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               boxShadow: [
                 BoxShadow(
                   color: const Color(0xFF0F172A).withOpacity(0.06),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Row 1: Name + Course + Status Badge
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
-                      child: Text(
-                        '👤 $name',
-                        style: const TextStyle(
-                          color: Color(0xFF0F172A),
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
+                      child: Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: '👤 $name',
+                              style: const TextStyle(color: Color(0xFF0F172A), fontSize: 14, fontWeight: FontWeight.w800),
+                            ),
+                            if (course.isNotEmpty) ...[
+                              const TextSpan(text: ' • ', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
+                              TextSpan(
+                                text: course,
+                                style: const TextStyle(color: Color(0xFF475569), fontSize: 12, fontWeight: FontWeight.w600),
+                              ),
+                            ],
+                          ],
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                       decoration: BoxDecoration(
                         color: const Color(0xFFDBEAFE),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: const Color(0xFFBFDBFE)),
                       ),
                       child: Text(
                         status.toString().toUpperCase(),
                         style: const TextStyle(
                           color: Color(0xFF1D4ED8),
-                          fontSize: 10.5,
+                          fontSize: 10,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
                     ),
                   ],
                 ),
-                if (course.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    '🎓 Course: $course',
-                    style: const TextStyle(color: Color(0xFF334155), fontSize: 12.5, fontWeight: FontWeight.w600),
-                  ),
-                ],
-                if (extra.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFF7ED),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: const Color(0xFFFFEDD5)),
+                const SizedBox(height: 4),
+                // Row 2: Mobile + Context Extra Info
+                Row(
+                  children: [
+                    Text(
+                      '📱 $mobile',
+                      style: const TextStyle(color: Color(0xFF475569), fontSize: 11.5, fontWeight: FontWeight.w500),
                     ),
-                    child: Text(
-                      'ℹ️ $extra',
-                      style: const TextStyle(color: Color(0xFFEA580C), fontSize: 12, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 10),
+                    if (extra.isNotEmpty) ...[
+                      const Text(' • ', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11)),
+                      Expanded(
+                        child: Text(
+                          extra,
+                          style: const TextStyle(color: Color(0xFFEA580C), fontSize: 11.5, fontWeight: FontWeight.bold),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 8),
+                // Row 3: Action Strip
                 Row(
                   children: [
                     Expanded(
                       child: InkWell(
                         onTap: () => _launchAssistantAction(type: 'call', mobile: mobile),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(6),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          padding: const EdgeInsets.symmetric(vertical: 6),
                           decoration: BoxDecoration(
                             color: const Color(0xFF2563EB),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.phone, size: 14, color: Colors.white),
-                              SizedBox(width: 6),
-                              Text('Call Now', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                              Icon(Icons.phone, size: 12, color: Colors.white),
+                              SizedBox(width: 4),
+                              Text('Call', style: TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Expanded(
                       child: InkWell(
                         onTap: () => _launchAssistantAction(type: 'whatsapp', mobile: mobile),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(6),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          padding: const EdgeInsets.symmetric(vertical: 6),
                           decoration: BoxDecoration(
                             color: const Color(0xFF16A34A),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.chat, size: 14, color: Colors.white),
-                              SizedBox(width: 6),
-                              Text('WhatsApp', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                              Icon(Icons.chat, size: 12, color: Colors.white),
+                              SizedBox(width: 4),
+                              Text('WhatsApp', style: TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ),
