@@ -35,10 +35,20 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
   int _totalPages = 1;
   final ScrollController _scrollController = ScrollController();
 
+  Map<String, int> _counts = {
+    'all': 0,
+    'today_followups': 0,
+    'pending_followups': 0,
+    'new': 0,
+    'contacted': 0,
+    'not_interested': 0,
+  };
+
   @override
   void initState() {
     super.initState();
     _loadEnquiries(isFirstLoad: true);
+    _fetchCounts();
     _scrollController.addListener(_scrollListener);
   }
 
@@ -46,6 +56,300 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
   void dispose() {
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchCounts() async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final filterTypes = ['all', 'today_followups', 'pending_followups', 'new', 'contacted', 'not_interested'];
+      final results = await Future.wait(
+        filterTypes.map((ft) => apiService.getRequest('/enquiries', queryParameters: {'page': 1, 'limit': 1, 'filterType': ft})),
+      );
+      final newCounts = <String, int>{};
+      for (int i = 0; i < filterTypes.length; i++) {
+        final res = results[i];
+        if (res.statusCode == 200 && res.data != null && res.data['pagination'] != null) {
+          newCounts[filterTypes[i]] = res.data['pagination']['total'] ?? 0;
+        }
+      }
+      if (mounted) {
+        setState(() {
+          _counts = newCounts;
+        });
+      }
+    } catch (_) {}
+  }
+
+  String _getFollowUpBadgeText(Map<String, dynamic> lead) {
+    final rawDate = lead['followUpDate'];
+    if (rawDate == null || rawDate.toString().isEmpty) return '';
+    final status = (lead['status'] ?? '').toString().toUpperCase();
+    if (status == 'NOT_INTERESTED' || status == 'ADMITTED') return '';
+
+    try {
+      final dt = DateTime.parse(rawDate.toString());
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final target = DateTime(dt.year, dt.month, dt.day);
+
+      final formatted = DateFormat('dd MMM yyyy').format(dt);
+      if (target.isBefore(today)) {
+        return 'Overdue: $formatted';
+      } else if (target.isAtSameMomentAs(today)) {
+        return 'Today: $formatted';
+      } else {
+        return 'Follow-up: $formatted';
+      }
+    } catch (_) {
+      return rawDate.toString();
+    }
+  }
+
+  void _openStatusUpdateModal(Map<String, dynamic> lead) {
+    final enquiryId = lead['_id']?.toString();
+    if (enquiryId == null) return;
+
+    String currentStatus = lead['status'] ?? 'NEW';
+    final noteController = TextEditingController();
+    DateTime? selectedDate = lead['followUpDate'] != null
+        ? DateTime.tryParse(lead['followUpDate'].toString())
+        : null;
+    bool isSaving = false;
+
+    final statuses = [
+      {'value': 'CONTACTED', 'label': 'Contacted', 'color': Colors.blue},
+      {'value': 'INTERESTED', 'label': 'Interested', 'color': Colors.green},
+      {'value': 'NOT_INTERESTED', 'label': 'Not Interested', 'color': Colors.red},
+    ];
+
+    final now = DateTime.now();
+    final quickDates = [
+      {'label': 'Today', 'date': now},
+      {'label': 'Tomorrow', 'date': now.add(const Duration(days: 1))},
+      {'label': 'In 3 Days', 'date': now.add(const Duration(days: 3))},
+      {'label': 'Next Week', 'date': now.add(const Duration(days: 7))},
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(builder: (ctx, setSheet) {
+          return DraggableScrollableSheet(
+            initialChildSize: 0.85,
+            maxChildSize: 0.95,
+            minChildSize: 0.5,
+            expand: false,
+            builder: (_, scrollCtrl) {
+              return Container(
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFFFFFF),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                ),
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                child: ListView(
+                  controller: scrollCtrl,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40, height: 4,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.circular(4)),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        const Icon(Icons.sync_rounded, color: Colors.purple, size: 20),
+                        const SizedBox(width: 8),
+                        const Text('Update Status & Follow-up', style: TextStyle(color: Color(0xFF1E293B), fontSize: 17, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      lead['name'] ?? '',
+                      style: const TextStyle(color: Colors.blueGrey, fontSize: 13),
+                    ),
+                    const Divider(color: Colors.black12, height: 24),
+
+                    const Text('Lead Status', style: TextStyle(color: Colors.blueGrey, fontSize: 12, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: statuses.map((s) {
+                        final isSelected = currentStatus == s['value'];
+                        final color = s['color'] as Color;
+                        return GestureDetector(
+                          onTap: () => setSheet(() => currentStatus = s['value'] as String),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: isSelected ? color : color.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: isSelected ? color : color.withOpacity(0.3)),
+                            ),
+                            child: Text(
+                              s['label'] as String,
+                              style: TextStyle(
+                                color: isSelected ? Colors.white : color,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+
+                    if (currentStatus != 'NOT_INTERESTED') ...[
+                      const SizedBox(height: 20),
+                      const Text('Follow-up Date', style: TextStyle(color: Colors.blueGrey, fontSize: 12, fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: quickDates.map((q) {
+                          final dt = q['date'] as DateTime;
+                          final isSel = selectedDate != null &&
+                              selectedDate!.year == dt.year &&
+                              selectedDate!.month == dt.month &&
+                              selectedDate!.day == dt.day;
+                          return GestureDetector(
+                            onTap: () => setSheet(() => selectedDate = dt),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: isSel ? Colors.teal : const Color(0xFFF8FAFC),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: isSel ? Colors.teal : Colors.black12),
+                              ),
+                              child: Text(
+                                q['label'] as String,
+                                style: TextStyle(color: isSel ? Colors.white : const Color(0xFF1E293B), fontSize: 12, fontWeight: isSel ? FontWeight.bold : FontWeight.normal),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 10),
+                      GestureDetector(
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: selectedDate ?? DateTime.now(),
+                            firstDate: DateTime.now().subtract(const Duration(days: 30)),
+                            lastDate: DateTime(2100),
+                          );
+                          if (picked != null) {
+                            setSheet(() => selectedDate = picked);
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.black12),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                selectedDate != null ? DateFormat('dd MMM yyyy').format(selectedDate!) : 'Pick custom date',
+                                style: TextStyle(color: selectedDate != null ? const Color(0xFF1E293B) : Colors.blueGrey, fontSize: 13, fontWeight: FontWeight.w500),
+                              ),
+                              const Icon(Icons.calendar_today, size: 16, color: Colors.blueGrey),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: 20),
+                    const Text('Call Summary / Note', style: TextStyle(color: Colors.blueGrey, fontSize: 12, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: noteController,
+                      maxLines: 3,
+                      style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13),
+                      decoration: InputDecoration(
+                        hintText: 'Enter notes about the conversation...',
+                        hintStyle: const TextStyle(color: Colors.blueGrey),
+                        filled: true,
+                        fillColor: const Color(0xFFF8FAFC),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.black12)),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.black12)),
+                        contentPadding: const EdgeInsets.all(12),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        icon: isSaving ? const SizedBox.shrink() : const Icon(Icons.check_circle_outline, color: Colors.white),
+                        label: isSaving
+                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                            : const Text('Save Action & Status', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueAccent,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        onPressed: isSaving ? null : () async {
+                          setSheet(() => isSaving = true);
+                          try {
+                            final apiService = Provider.of<ApiService>(context, listen: false);
+                            final payload = <String, dynamic>{
+                              'status': currentStatus,
+                            };
+                            if (noteController.text.trim().isNotEmpty) {
+                              payload['note'] = noteController.text.trim();
+                            }
+                            if (currentStatus != 'NOT_INTERESTED' && selectedDate != null) {
+                              payload['followUpDate'] = DateFormat('yyyy-MM-dd').format(selectedDate!);
+                            } else if (currentStatus == 'NOT_INTERESTED') {
+                              payload['followUpDate'] = null;
+                            }
+
+                            final res = await apiService.putRequest('/enquiries/$enquiryId', data: payload);
+                            if (res.statusCode == 200 || res.statusCode == 201) {
+                              if (mounted) {
+                                Navigator.pop(ctx);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Lead status updated successfully!'), backgroundColor: Colors.green),
+                                );
+                                _loadEnquiries(isFirstLoad: true);
+                                _fetchCounts();
+                              }
+                            } else {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Update failed: ${res.data?['message'] ?? 'Error'}'), backgroundColor: Colors.redAccent),
+                                );
+                              }
+                            }
+                          } catch (e) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Failed to update: $e'), backgroundColor: Colors.redAccent),
+                              );
+                            }
+                          } finally {
+                            setSheet(() => isSaving = false);
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        });
+      },
+    );
   }
 
   Future<void> _makeCall(String mobile) async {
@@ -106,12 +410,10 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
       final queryParams = <String, dynamic>{
         'page': _currentPage,
         'limit': 10,
+        'filterType': _filterType,
       };
       if (_statusFilter != 'all') {
         queryParams['status'] = _statusFilter;
-      }
-      if (_filterType != 'all') {
-        queryParams['filterType'] = _filterType;
       }
       if (_followUpToday) {
         queryParams['followUpToday'] = true;
@@ -1224,20 +1526,20 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  {'label': 'All', 'value': 'all', 'icon': Icons.list},
-                  {'label': 'New', 'value': 'new', 'icon': Icons.fiber_new},
-                  {'label': "Today's", 'value': 'today_followups', 'icon': Icons.today},
-                  {'label': 'Pending', 'value': 'pending_followups', 'icon': Icons.pending_actions},
-                  {'label': 'Upcoming', 'value': 'upcoming_followups', 'icon': Icons.upcoming},
-                  {'label': 'Contacted', 'value': 'contacted', 'icon': Icons.phone_in_talk},
-                  {'label': 'Not Interested', 'value': 'not_interested', 'icon': Icons.thumb_down_outlined},
+                  {'label': 'All Enq', 'value': 'all', 'icon': Icons.grid_view_rounded},
+                  {'label': "Today Followups", 'value': 'today_followups', 'icon': Icons.calendar_today_rounded},
+                  {'label': 'Pending Followups', 'value': 'pending_followups', 'icon': Icons.access_time_rounded},
+                  {'label': 'New Lead', 'value': 'new', 'icon': Icons.fiber_new_rounded},
+                  {'label': 'Contacted', 'value': 'contacted', 'icon': Icons.phone_in_talk_rounded},
+                  {'label': 'Not Interested', 'value': 'not_interested', 'icon': Icons.thumb_down_rounded},
                 ].map((f) {
                   final isSelected = _filterType == f['value'];
+                  final countVal = _counts[f['value']] ?? 0;
                   return Padding(
                     padding: const EdgeInsets.only(right: 8.0),
                     child: ChoiceChip(
                       selected: isSelected,
-                      labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+                      labelPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       label: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -1253,6 +1555,22 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                               color: isSelected ? Colors.white : Colors.blueGrey,
                               fontSize: 12,
                               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: isSelected ? Colors.white.withOpacity(0.25) : Colors.blueGrey.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              '$countVal',
+                              style: TextStyle(
+                                color: isSelected ? Colors.white : Colors.blueGrey.shade800,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],
@@ -1328,23 +1646,38 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                           if (status == 'INTERESTED') statusColor = Colors.orange;
                           if (status == 'ADMITTED') statusColor = Colors.teal;
                           if (status == 'NOT_INTERESTED') statusColor = Colors.redAccent;
-
                            final mobile = lead['mobile'] ?? '';
                            final course = lead['course'] ?? 'General Enquiry';
                            final source = lead['source'] ?? lead['leadSource'] ?? 'Unknown';
+                           final followUpBadge = _getFollowUpBadgeText(lead);
+                           final isOverdue = followUpBadge.startsWith('Overdue');
+                           final isTodayFollowup = followUpBadge.startsWith('Today');
 
-                           return Card(
-                             color: const Color(0xFFFFFFFF),
+                           return Container(
                              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                             decoration: BoxDecoration(
+                               color: const Color(0xFFFFFFFF),
+                               borderRadius: BorderRadius.circular(14),
+                               border: Border.all(color: Colors.black.withOpacity(0.06)),
+                               boxShadow: [
+                                 BoxShadow(
+                                   color: Colors.black.withOpacity(0.03),
+                                   blurRadius: 8,
+                                   offset: const Offset(0, 2),
+                                 ),
+                               ],
+                             ),
                              child: InkWell(
                                onTap: () => Navigator.push(
                                  context,
                                  MaterialPageRoute(builder: (_) => EnquiryDetailScreen(enquiryId: lead['_id'])),
-                               ).then((_) => _loadEnquiries(isFirstLoad: true)),
-                               borderRadius: BorderRadius.circular(12),
+                               ).then((_) {
+                                 _loadEnquiries(isFirstLoad: true);
+                                 _fetchCounts();
+                               }),
+                               borderRadius: BorderRadius.circular(14),
                                child: Padding(
-                                 padding: const EdgeInsets.all(16.0),
+                                 padding: const EdgeInsets.all(14.0),
                                  child: Column(
                                    crossAxisAlignment: CrossAxisAlignment.start,
                                    children: [
@@ -1360,55 +1693,143 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                                          Container(
                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                            decoration: BoxDecoration(
-                                             color: statusColor.withOpacity(0.15),
+                                             color: statusColor.withOpacity(0.12),
                                              borderRadius: BorderRadius.circular(8),
-                                             border: Border.all(color: statusColor.withOpacity(0.5)),
+                                             border: Border.all(color: statusColor.withOpacity(0.4)),
                                            ),
                                            child: Text(
-                                             status,
+                                             status.replaceAll('_', ' '),
                                              style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold),
                                            ),
                                          ),
                                        ],
                                      ),
                                      const SizedBox(height: 8),
-                                     Text(
-                                       course,
-                                       style: const TextStyle(color: Colors.blueAccent, fontSize: 13, fontWeight: FontWeight.w500),
-                                     ),
-                                     const SizedBox(height: 4),
-                                     Text(
-                                       'Source: $source',
-                                       style: const TextStyle(color: Colors.blueGrey, fontSize: 12),
-                                     ),
-                                     const Divider(color: Colors.black12, height: 20),
-                                     Row(
-                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                     Wrap(
+                                       spacing: 6,
+                                       runSpacing: 4,
                                        children: [
-                                         Text(
-                                           mobile,
-                                           style: const TextStyle(color: Color(0xFF64748B), fontSize: 13, fontWeight: FontWeight.w500),
+                                         Container(
+                                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                           decoration: BoxDecoration(
+                                             color: Colors.blue.shade50,
+                                             borderRadius: BorderRadius.circular(6),
+                                           ),
+                                           child: Text(
+                                             course,
+                                             style: TextStyle(color: Colors.blue.shade700, fontSize: 11, fontWeight: FontWeight.w600),
+                                           ),
                                          ),
-                                         if (mobile.isNotEmpty)
-                                           Row(
-                                             children: [
-                                               IconButton(
-                                                 icon: const Icon(Icons.phone, color: Colors.green, size: 18),
-                                                 padding: EdgeInsets.zero,
-                                                 constraints: const BoxConstraints(),
-                                                 onPressed: () => _makeCall(mobile),
-                                               ),
-                                               const SizedBox(width: 16),
-                                               IconButton(
-                                                 icon: const Icon(Icons.chat_bubble_outline, color: Color(0xFF25D366), size: 18),
-                                                 padding: EdgeInsets.zero,
-                                                 constraints: const BoxConstraints(),
-                                                 onPressed: () => _sendWhatsApp(mobile, lead['name'] ?? 'Student', course),
-                                               ),
-                                             ],
+                                         Container(
+                                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                           decoration: BoxDecoration(
+                                             color: Colors.grey.shade100,
+                                             borderRadius: BorderRadius.circular(6),
+                                           ),
+                                           child: Text(
+                                             'Src: $source',
+                                             style: TextStyle(color: Colors.grey.shade700, fontSize: 11),
+                                           ),
+                                         ),
+                                         if (lead['assignedTo'] != null)
+                                           Container(
+                                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                             decoration: BoxDecoration(
+                                               color: Colors.purple.shade50,
+                                               borderRadius: BorderRadius.circular(6),
+                                             ),
+                                             child: Text(
+                                               'Assigned: ${(lead['assignedTo'] is Map) ? (lead['assignedTo']['name'] ?? 'Counselor') : 'Assigned'}',
+                                               style: TextStyle(color: Colors.purple.shade700, fontSize: 11, fontWeight: FontWeight.w500),
+                                             ),
                                            ),
                                        ],
                                      ),
+                                     if (followUpBadge.isNotEmpty) ...[
+                                       const SizedBox(height: 8),
+                                       Container(
+                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                         decoration: BoxDecoration(
+                                           color: isOverdue ? Colors.red.shade50 : (isTodayFollowup ? Colors.amber.shade50 : Colors.teal.shade50),
+                                           borderRadius: BorderRadius.circular(6),
+                                           border: Border.all(
+                                             color: isOverdue ? Colors.red.shade200 : (isTodayFollowup ? Colors.amber.shade300 : Colors.teal.shade300),
+                                           ),
+                                         ),
+                                         child: Row(
+                                           mainAxisSize: MainAxisSize.min,
+                                           children: [
+                                             Icon(
+                                               isOverdue ? Icons.warning_amber_rounded : (isTodayFollowup ? Icons.access_time : Icons.calendar_today),
+                                               size: 12,
+                                               color: isOverdue ? Colors.red.shade700 : (isTodayFollowup ? Colors.amber.shade900 : Colors.teal.shade800),
+                                             ),
+                                             const SizedBox(width: 4),
+                                             Text(
+                                               followUpBadge,
+                                               style: TextStyle(
+                                                 color: isOverdue ? Colors.red.shade700 : (isTodayFollowup ? Colors.amber.shade900 : Colors.teal.shade800),
+                                                 fontSize: 11,
+                                                 fontWeight: FontWeight.bold,
+                                               ),
+                                             ),
+                                           ],
+                                         ),
+                                       ),
+                                     ],
+                                     const Divider(color: Colors.black12, height: 20),
+                                     Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            mobile,
+                                            style: const TextStyle(color: Color(0xFF64748B), fontSize: 13, fontWeight: FontWeight.w600),
+                                          ),
+                                          Row(
+                                            children: [
+                                              if (mobile.isNotEmpty) ...[
+                                                IconButton(
+                                                  icon: const Icon(Icons.phone, color: Colors.green, size: 18),
+                                                  padding: EdgeInsets.zero,
+                                                  constraints: const BoxConstraints(),
+                                                  onPressed: () => _makeCall(mobile),
+                                                ),
+                                                const SizedBox(width: 14),
+                                                IconButton(
+                                                  icon: const Icon(Icons.chat_bubble_outline, color: Color(0xFF25D366), size: 18),
+                                                  padding: EdgeInsets.zero,
+                                                  constraints: const BoxConstraints(),
+                                                  onPressed: () => _sendWhatsApp(mobile, lead['name'] ?? 'Student', course),
+                                                ),
+                                                const SizedBox(width: 14),
+                                              ],
+                                              InkWell(
+                                                onTap: () => _openStatusUpdateModal(lead),
+                                                borderRadius: BorderRadius.circular(6),
+                                                child: Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.purple.shade50,
+                                                    borderRadius: BorderRadius.circular(6),
+                                                    border: Border.all(color: Colors.purple.shade200),
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      Icon(Icons.sync_rounded, size: 12, color: Colors.purple.shade700),
+                                                      const SizedBox(width: 4),
+                                                      Text(
+                                                        'Action',
+                                                        style: TextStyle(color: Colors.purple.shade700, fontSize: 11, fontWeight: FontWeight.bold),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
                                    ],
                                  ),
                                ),
