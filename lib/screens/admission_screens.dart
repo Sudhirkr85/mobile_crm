@@ -2132,19 +2132,11 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                     ),
                     child: const Text('Process Refund', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ),
-                ],
-              ),
-            );
-          },
-        ),
-      );
-    },
-  );
-}
-
-  Future<void> _handleDropStudent() async {
+       Future<void> _handleDropStudent() async {
     final reasonController = TextEditingController();
-    bool clearDues = false;
+    final noteController = TextEditingController();
+    DateTime dropDate = DateTime.now();
+    bool clearDues = true;
 
     showDialog(
       context: context,
@@ -2162,71 +2154,149 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
             builder: (context, setDialogState) {
               return AlertDialog(
                 backgroundColor: const Color(0xFF1F2937),
-              title: const Text('Drop Student', style: TextStyle(color: Colors.white)),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextField(
-                    controller: reasonController,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: const InputDecoration(labelText: 'Reason for dropping', labelStyle: TextStyle(color: Colors.blueGrey)),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
+                title: const Text('Drop Student', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Checkbox(
-                        value: clearDues,
-                        activeColor: Colors.teal,
-                        checkColor: Colors.white,
-                        onChanged: (val) {
-                          if (val != null) {
+                      TextField(
+                        controller: reasonController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: const InputDecoration(
+                          labelText: 'Reason for dropping *',
+                          labelStyle: TextStyle(color: Colors.blueGrey),
+                          hintText: 'e.g. Joined elsewhere, Personal reasons',
+                          hintStyle: TextStyle(color: Colors.grey, fontSize: 12),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      InkWell(
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: dropDate,
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime.now(),
+                          );
+                          if (picked != null) {
                             setDialogState(() {
-                              clearDues = val;
+                              dropDate = picked;
                             });
                           }
                         },
-                      ),
-                      const Expanded(
-                        child: Text(
-                          'Clear remaining dues (write-off)',
-                          style: TextStyle(color: Colors.blueGrey, fontSize: 13),
+                        child: InputDecorator(
+                          decoration: const InputDecoration(
+                            labelText: 'Drop Date *',
+                            labelStyle: TextStyle(color: Colors.blueGrey),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                DateFormat('dd MMM yyyy').format(dropDate),
+                                style: const TextStyle(color: Colors.white, fontSize: 14),
+                              ),
+                              const Icon(Icons.calendar_today, color: Colors.teal, size: 18),
+                            ],
+                          ),
                         ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: noteController,
+                        maxLines: 2,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: const InputDecoration(
+                          labelText: 'Optional Notes',
+                          labelStyle: TextStyle(color: Colors.blueGrey),
+                          hintText: 'Add additional comments...',
+                          hintStyle: TextStyle(color: Colors.grey, fontSize: 12),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: clearDues,
+                            activeColor: Colors.teal,
+                            checkColor: Colors.white,
+                            onChanged: (val) {
+                              if (val != null) {
+                                setDialogState(() {
+                                  clearDues = val;
+                                });
+                              }
+                            },
+                          ),
+                          const Expanded(
+                            child: Text(
+                              'Clear remaining dues (write-off balance)',
+                              style: TextStyle(color: Colors.blueGrey, fontSize: 13),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.redAccent)),
                 ),
-                ElevatedButton(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    setState(() {
-                      _isLoading = true;
-                    });
-                    try {
-                      final apiService = Provider.of<ApiService>(context, listen: false);
-                      final res = await apiService.postRequest('/admissions/${widget.admissionId}/drop', data: {
-                        'reason': reasonController.text.trim(),
-                        'clearDues': clearDues,
-                      });
-                      if (res.statusCode == 200) {
-                        _loadDetails();
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Student dropped successfully!'), backgroundColor: Colors.redAccent));
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel', style: TextStyle(color: Colors.redAccent)),
+                  ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                    onPressed: () async {
+                      final reason = reasonController.text.trim();
+                      if (reason.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Please enter a reason for dropping the student.')),
+                        );
+                        return;
                       }
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to drop student: ${ApiService.getReadableError(e)}')));
-                    } finally {
+
+                      Navigator.pop(context);
                       setState(() {
-                        _isLoading = false;
+                        _isLoading = true;
                       });
-                    }
-                  },
-                  child: const Text('Drop'),
+                      try {
+                        final apiService = Provider.of<ApiService>(context, listen: false);
+                        final res = await apiService.postRequest(
+                          '/admissions/${widget.admissionId}/drop',
+                          data: {
+                            'reason': reason,
+                            'clearDues': clearDues,
+                            'dropDate': DateFormat('yyyy-MM-dd').format(dropDate),
+                            'note': noteController.text.trim().isNotEmpty ? noteController.text.trim() : 'Student dropped: $reason',
+                          },
+                        );
+                        if (res.statusCode == 200) {
+                          _loadDetails();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Student dropped successfully!'), backgroundColor: Colors.redAccent),
+                          );
+                        }
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Failed to drop student: ${ApiService.getReadableError(e)}')),
+                        );
+                      } finally {
+                        setState(() {
+                          _isLoading = false;
+                        });
+                      }
+                    },
+                    child: const Text('Drop Student'),
+                  )
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+  }xt('Drop'),
                 )
               ],
             );
@@ -2409,8 +2479,19 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
             const SizedBox(height: 20),
 
             // Installment Plan list
-            if (installments.isNotEmpty) ...[
-              const Text('INSTALLMENT SCHEDULES', style: TextStyle(color: Color(0xFF1E293B), fontSize: 16, fontWeight: FontWeight.bold)),
+            if (installments.isNotEmpty || pendingAmount > 0) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('INSTALLMENT SCHEDULES', style: TextStyle(color: Color(0xFF1E293B), fontSize: 16, fontWeight: FontWeight.bold)),
+                  if (status != 'dropped')
+                    TextButton.icon(
+                      onPressed: () => _setInstallmentPlan(pendingAmount.toDouble()),
+                      icon: const Icon(Icons.edit_calendar, size: 16, color: Colors.teal),
+                      label: const Text('Edit Plan', style: TextStyle(color: Colors.teal, fontSize: 12, fontWeight: FontWeight.bold)),
+                    ),
+                ],
+              ),
               const SizedBox(height: 12),
               ...installments.map((inst) {
                 final status = inst['status'] ?? 'PENDING';
