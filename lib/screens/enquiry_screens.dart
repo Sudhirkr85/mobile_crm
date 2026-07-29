@@ -61,21 +61,21 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
   Future<void> _fetchCounts() async {
     try {
       final apiService = Provider.of<ApiService>(context, listen: false);
-      final filterTypes = ['all', 'today_followups', 'pending_followups', 'new', 'contacted', 'not_interested'];
-      final results = await Future.wait(
-        filterTypes.map((ft) => apiService.getRequest('/enquiries', queryParameters: {'page': 1, 'limit': 1, 'filterType': ft})),
-      );
-      final newCounts = <String, int>{};
-      for (int i = 0; i < filterTypes.length; i++) {
-        final res = results[i];
-        if (res.statusCode == 200 && res.data != null && res.data['pagination'] != null) {
-          newCounts[filterTypes[i]] = res.data['pagination']['total'] ?? 0;
+      final res = await apiService.getRequest('/enquiries/stats');
+      if (res.statusCode == 200 && res.data != null) {
+        final data = res.data['data'] ?? res.data;
+        if (mounted) {
+          setState(() {
+            _counts = {
+              'all': data['all'] ?? 0,
+              'today_followups': data['today_followups'] ?? 0,
+              'pending_followups': data['pending_followups'] ?? 0,
+              'new': data['new'] ?? 0,
+              'contacted': data['contacted'] ?? 0,
+              'not_interested': data['not_interested'] ?? 0,
+            };
+          });
         }
-      }
-      if (mounted) {
-        setState(() {
-          _counts = newCounts;
-        });
       }
     } catch (_) {}
   }
