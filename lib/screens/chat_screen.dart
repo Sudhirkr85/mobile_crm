@@ -465,26 +465,36 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   Widget _buildQuickChips() {
     final chips = [
-      ('Help', 'Help'),
-      ('WhatsApp Msg', 'whatsapp message'),
-      ('Call', 'call'),
-      ('Today\'s Follow-up', 'todays followup'),
-      ('Pending Follow-up', 'pending followup'),
-      ('Pending Fees', 'pending fees'),
+      ('📅 Today\'s Follow-ups', 'aaj ke follow ups batao', Colors.orange),
+      ('⏳ Pending Follow-ups', 'pending follow ups dikhao', Colors.amber),
+      ('💰 Pending Fees', 'pending fee wale students dikhao', Colors.teal),
+      ('🆕 New Enquiries', 'new enquiries dikhao', Colors.blue),
+      ('📝 Saved Notes', 'mere saved notes dikhao', Colors.purple),
+      ('📞 Call Student', 'call karo', Colors.green),
+      ('💬 WhatsApp', 'whatsapp karo', Colors.lightGreen),
+      ('📖 AI Guide', 'help guide batao', Colors.indigo),
     ];
 
     return Container(
-      height: 44,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: const BoxDecoration(
-        color: Color(0xFFFFFFFF),
-        border: Border(bottom: BorderSide(color: Colors.black12)),
+      height: 48,
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFFFF),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 14),
         scrollDirection: Axis.horizontal,
         itemCount: chips.length,
         separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (context, i) {
+          final color = chips[i].$3;
           return GestureDetector(
             onTap: () {
               _controller.text = chips[i].$2;
@@ -494,13 +504,17 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF667eea).withValues(alpha: 0.15),
+                  color: color.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFF667eea).withValues(alpha: 0.4)),
+                  border: Border.all(color: color.withOpacity(0.35)),
                 ),
                 child: Text(
                   chips[i].$1,
-                  style: const TextStyle(color: Color(0xFF667eea), fontSize: 12, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    color: color.shade800,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),

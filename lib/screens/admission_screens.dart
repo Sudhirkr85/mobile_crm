@@ -166,8 +166,52 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
               ],
             ),
           ),
+          // Horizontal Status Quick Filters
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  {'label': 'All', 'value': 'ALL', 'icon': Icons.list},
+                  {'label': 'Active', 'value': 'active', 'icon': Icons.check_circle_outline},
+                  {'label': 'Overdue', 'value': 'overdue', 'icon': Icons.warning_amber_rounded},
+                  {'label': 'Dropped', 'value': 'dropped', 'icon': Icons.person_off},
+                  {'label': 'Completed', 'value': 'completed', 'icon': Icons.task_alt},
+                ].map((f) {
+                  final isSelected = _statusFilter.toLowerCase() == (f['value'] as String).toLowerCase();
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: ChoiceChip(
+                      selected: isSelected,
+                      labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+                      label: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(f['icon'] as IconData, size: 14, color: isSelected ? Colors.white : Colors.blueGrey),
+                          const SizedBox(width: 4),
+                          Text(f['label'] as String, style: TextStyle(color: isSelected ? Colors.white : Colors.blueGrey, fontSize: 12, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                        ],
+                      ),
+                      backgroundColor: const Color(0xFF1F2937),
+                      selectedColor: Colors.blueAccent,
+                      side: BorderSide(color: isSelected ? Colors.blueAccent : Colors.white12),
+                      onSelected: (selected) {
+                        if (selected) {
+                          setState(() {
+                            _statusFilter = f['value'] as String;
+                          });
+                          _loadAdmissions(isFirstLoad: true);
+                        }
+                      },
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
             child: Row(
               children: [
                 Expanded(
@@ -186,34 +230,6 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                         _searchQuery = val;
                       });
                       _loadAdmissions(isFirstLoad: true);
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFFFFF),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: DropdownButton<String>(
-                    value: _statusFilter,
-                    dropdownColor: const Color(0xFFFFFFFF),
-                    underline: const SizedBox(),
-                    style: const TextStyle(color: Color(0xFF1E293B)),
-                    items: const [
-                      DropdownMenuItem(value: 'ALL', child: Text('All')),
-                      DropdownMenuItem(value: 'Active', child: Text('Active')),
-                      DropdownMenuItem(value: 'Dropped', child: Text('Dropped')),
-                      DropdownMenuItem(value: 'Completed', child: Text('Completed')),
-                    ],
-                    onChanged: (val) {
-                      if (val != null) {
-                        setState(() {
-                          _statusFilter = val;
-                        });
-                        _loadAdmissions(isFirstLoad: true);
-                      }
                     },
                   ),
                 ),
@@ -2132,7 +2148,17 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
                     ),
                     child: const Text('Process Refund', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ),
-       Future<void> _handleDropStudent() async {
+                ],
+              ),
+            );
+          },
+        ),
+      );
+    },
+  );
+}
+
+  Future<void> _handleDropStudent() async {
     final reasonController = TextEditingController();
     final noteController = TextEditingController();
     DateTime dropDate = DateTime.now();
@@ -2296,16 +2322,7 @@ class _AdmissionDetailScreenState extends State<AdmissionDetailScreen> {
         );
       },
     );
-  }xt('Drop'),
-                )
-              ],
-            );
-          },
-        ),
-      );
-    },
-  );
-}
+  }
 
   String _formatDateString(dynamic dateObj) {
     if (dateObj == null) return '';

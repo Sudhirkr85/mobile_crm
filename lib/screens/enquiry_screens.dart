@@ -26,6 +26,8 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
   bool _followUpToday = false;
   bool _followUpOverdue = false;
   String? _assignedTo; // null, 'me', 'any'
+  String? _courseFilter;
+  String? _sourceFilter;
   DateTime? _dateFrom;
   DateTime? _dateTo;
 
@@ -120,6 +122,12 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
       if (_assignedTo != null) {
         queryParams['assignedTo'] = _assignedTo;
       }
+      if (_courseFilter != null && _courseFilter!.isNotEmpty) {
+        queryParams['course'] = _courseFilter;
+      }
+      if (_sourceFilter != null && _sourceFilter!.isNotEmpty) {
+        queryParams['source'] = _sourceFilter;
+      }
       if (_dateFrom != null) {
         queryParams['dateFrom'] = DateFormat('yyyy-MM-dd').format(_dateFrom!);
       }
@@ -186,6 +194,8 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
     bool localFollowUpToday = _followUpToday;
     bool localFollowUpOverdue = _followUpOverdue;
     String? localAssignedTo = _assignedTo;
+    String? localCourse = _courseFilter;
+    String? localSource = _sourceFilter;
     DateTime? localDateFrom = _dateFrom;
     DateTime? localDateTo = _dateTo;
 
@@ -196,8 +206,8 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
       builder: (ctx) {
         return StatefulBuilder(builder: (ctx, setLocal) {
           return DraggableScrollableSheet(
-            initialChildSize: 0.75,
-            maxChildSize: 0.92,
+            initialChildSize: 0.85,
+            maxChildSize: 0.95,
             minChildSize: 0.5,
             expand: false,
             builder: (_, scrollCtrl) {
@@ -223,11 +233,13 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                               localFollowUpToday = false;
                               localFollowUpOverdue = false;
                               localAssignedTo = null;
+                              localCourse = null;
+                              localSource = null;
                               localDateFrom = null;
                               localDateTo = null;
                             });
                           },
-                          child: const Text('Reset', style: TextStyle(color: Colors.redAccent)),
+                          child: const Text('Reset All', style: TextStyle(color: Colors.redAccent)),
                         ),
                       ],
                     ),
@@ -262,7 +274,66 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                         );
                       }).toList(),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
+
+                    // Course Filter
+                    const Text('Course', style: TextStyle(color: Color(0xFF64748B), fontSize: 12, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 6),
+                    DropdownButtonFormField<String>(
+                      value: localCourse,
+                      dropdownColor: Colors.white,
+                      decoration: InputDecoration(
+                        hintText: 'All Courses',
+                        hintStyle: const TextStyle(color: Colors.blueGrey, fontSize: 13),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        filled: true,
+                        fillColor: const Color(0xFFF8FAFC),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Colors.black12)),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: null, child: Text('All Courses', style: TextStyle(color: Colors.black87, fontSize: 13))),
+                        DropdownMenuItem(value: 'Data Analytics', child: Text('Data Analytics', style: TextStyle(color: Colors.black87, fontSize: 13))),
+                        DropdownMenuItem(value: 'Data Science', child: Text('Data Science', style: TextStyle(color: Colors.black87, fontSize: 13))),
+                        DropdownMenuItem(value: 'Basic Computer', child: Text('Basic Computer', style: TextStyle(color: Colors.black87, fontSize: 13))),
+                        DropdownMenuItem(value: 'Python Full Stack', child: Text('Python Full Stack', style: TextStyle(color: Colors.black87, fontSize: 13))),
+                        DropdownMenuItem(value: 'Java Full Stack', child: Text('Java Full Stack', style: TextStyle(color: Colors.black87, fontSize: 13))),
+                        DropdownMenuItem(value: 'MERN Stack', child: Text('MERN Stack', style: TextStyle(color: Colors.black87, fontSize: 13))),
+                        DropdownMenuItem(value: 'Ethical Hacking', child: Text('Ethical Hacking', style: TextStyle(color: Colors.black87, fontSize: 13))),
+                        DropdownMenuItem(value: 'Web Development', child: Text('Web Development', style: TextStyle(color: Colors.black87, fontSize: 13))),
+                        DropdownMenuItem(value: 'Digital Marketing', child: Text('Digital Marketing', style: TextStyle(color: Colors.black87, fontSize: 13))),
+                        DropdownMenuItem(value: 'Other', child: Text('Other', style: TextStyle(color: Colors.black87, fontSize: 13))),
+                      ],
+                      onChanged: (val) => setLocal(() => localCourse = val),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Source Filter
+                    const Text('Lead Source', style: TextStyle(color: Color(0xFF64748B), fontSize: 12, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 6),
+                    DropdownButtonFormField<String>(
+                      value: localSource,
+                      dropdownColor: Colors.white,
+                      decoration: InputDecoration(
+                        hintText: 'All Sources',
+                        hintStyle: const TextStyle(color: Colors.blueGrey, fontSize: 13),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        filled: true,
+                        fillColor: const Color(0xFFF8FAFC),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Colors.black12)),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: null, child: Text('All Sources', style: TextStyle(color: Colors.black87, fontSize: 13))),
+                        DropdownMenuItem(value: 'Walk-in', child: Text('Walk-in', style: TextStyle(color: Colors.black87, fontSize: 13))),
+                        DropdownMenuItem(value: 'Website', child: Text('Website', style: TextStyle(color: Colors.black87, fontSize: 13))),
+                        DropdownMenuItem(value: 'Google', child: Text('Google', style: TextStyle(color: Colors.black87, fontSize: 13))),
+                        DropdownMenuItem(value: 'Social Media', child: Text('Social Media', style: TextStyle(color: Colors.black87, fontSize: 13))),
+                        DropdownMenuItem(value: 'Referral', child: Text('Referral', style: TextStyle(color: Colors.black87, fontSize: 13))),
+                        DropdownMenuItem(value: 'Phone', child: Text('Phone', style: TextStyle(color: Colors.black87, fontSize: 13))),
+                        DropdownMenuItem(value: 'Other', child: Text('Other', style: TextStyle(color: Colors.black87, fontSize: 13))),
+                      ],
+                      onChanged: (val) => setLocal(() => localSource = val),
+                    ),
+                    const SizedBox(height: 16),
 
                     // Date Range
                     const Text('Date Range (Enquiry Created)', style: TextStyle(color: Color(0xFF64748B), fontSize: 12, fontWeight: FontWeight.w600)),
@@ -369,6 +440,8 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                             _followUpToday = localFollowUpToday;
                             _followUpOverdue = localFollowUpOverdue;
                             _assignedTo = localAssignedTo;
+                            _courseFilter = localCourse;
+                            _sourceFilter = localSource;
                             _dateFrom = localDateFrom;
                             _dateTo = localDateTo;
                           });
