@@ -790,13 +790,22 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           final status = item['status'];
           final extra = item['extra'];
 
+          final recentNotes = item['recentNotes'] as List?;
+
           return Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.all(10),
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFCBD5E1), width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF0F172A).withOpacity(0.06),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -806,86 +815,127 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   children: [
                     Expanded(
                       child: Text(
-                        name,
+                        '👤 $name',
                         style: const TextStyle(
                           color: Color(0xFF0F172A),
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(4),
+                        color: const Color(0xFFDBEAFE),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFFBFDBFE)),
                       ),
                       child: Text(
                         status.toString().toUpperCase(),
                         style: const TextStyle(
-                          color: Colors.blueAccent,
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1D4ED8),
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                     ),
                   ],
                 ),
                 if (course.isNotEmpty) ...[
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 4),
                   Text(
-                    'Course: $course',
-                    style: const TextStyle(color: Color(0xFF475569), fontSize: 11.5),
+                    '🎓 Course: $course',
+                    style: const TextStyle(color: Color(0xFF334155), fontSize: 12.5, fontWeight: FontWeight.w600),
                   ),
                 ],
                 if (extra.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    extra,
-                    style: const TextStyle(color: Colors.deepOrange, fontSize: 11.5, fontWeight: FontWeight.w600),
+                  const SizedBox(height: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF7ED),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: const Color(0xFFFFEDD5)),
+                    ),
+                    child: Text(
+                      'ℹ️ $extra',
+                      style: const TextStyle(color: Color(0xFFEA580C), fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ],
-                const SizedBox(height: 8),
+                if (recentNotes != null && recentNotes.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(8),
+                      border: const Border(left: BorderSide(color: Color(0xFF2563EB), width: 3)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '📜 Recent Notes (Last ${recentNotes.length}):',
+                          style: const TextStyle(color: Color(0xFF1E293B), fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 3),
+                        ...recentNotes.map((n) {
+                          final noteText = n['note'] ?? n['text'] ?? '';
+                          final noteDate = n['date'] ?? '';
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 2),
+                            child: Text(
+                              '• $noteText${noteDate.isNotEmpty ? ' ($noteDate)' : ''}',
+                              style: const TextStyle(color: Color(0xFF334155), fontSize: 11, fontWeight: FontWeight.w500),
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 10),
                 Row(
                   children: [
                     Expanded(
                       child: InkWell(
                         onTap: () => _launchAssistantAction(type: 'call', mobile: mobile),
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(8),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
                           decoration: BoxDecoration(
-                            color: Colors.blueAccent,
-                            borderRadius: BorderRadius.circular(6),
+                            color: const Color(0xFF2563EB),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.phone, size: 12, color: Colors.white),
-                              SizedBox(width: 4),
-                              Text('Call', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                              Icon(Icons.phone, size: 14, color: Colors.white),
+                              SizedBox(width: 6),
+                              Text('Call Now', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: InkWell(
                         onTap: () => _launchAssistantAction(type: 'whatsapp', mobile: mobile),
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(8),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
                           decoration: BoxDecoration(
-                            color: Color(0xFF25D366),
-                            borderRadius: BorderRadius.circular(6),
+                            color: const Color(0xFF16A34A),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.chat, size: 12, color: Colors.white),
-                              SizedBox(width: 4),
-                              Text('WhatsApp', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                              Icon(Icons.chat, size: 14, color: Colors.white),
+                              SizedBox(width: 6),
+                              Text('WhatsApp', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ),
