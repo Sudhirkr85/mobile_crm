@@ -241,6 +241,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     String text, {
     String? lang,
     Map<String, dynamic>? action,
+    Map<String, dynamic>? rawData,
   }) {
     final cleanText = _sanitizeAssistantMessage(text);
     setState(() {
@@ -250,6 +251,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           isUser: false,
           lang: lang ?? _selectedLang,
           action: action,
+          rawData: rawData,
         ),
       );
     });
@@ -302,7 +304,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         final message = data['message'] ?? 'Koi response nahi mila.';
         final lang = data['language'] ?? _selectedLang;
         final action = data['action'] as Map<String, dynamic>?;
-        _addBotMessage(message, lang: lang, action: action);
+        final rawData = data['rawData'] as Map<String, dynamic>?;
+        _addBotMessage(message, lang: lang, action: action, rawData: rawData);
       } else {
         _addBotMessage(
           _selectedLang == 'hindi'
@@ -592,6 +595,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                         const SizedBox(height: 8),
                         _buildActionLauncherButton(msg.action!),
                       ],
+                      if (!msg.isUser && msg.rawData != null)
+                        _buildLeadCardsFromRawData(msg.rawData!),
                     ],
                   ),
                 ),
@@ -676,6 +681,223 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildLeadCardsFromRawData(Map<String, dynamic> rawData) {
+    List<Map<String, dynamic>> items = [];
+
+    // Extract enquiries
+    if (rawData['enquiries'] is List) {
+      for (var e in rawData['enquiries']) {
+        if (e is Map<String, dynamic> && e['mobile'] != null) {
+          items.add({
+            'name': e['name'] ?? 'Enquiry',
+            'mobile': e['mobile'],
+            'course': e['course'] ?? '',
+            'status': e['status'] ?? 'NEW',
+            'extra': e['followUpDate'] != null ? 'Follow-up: ${e['followUpDate']}' : '',
+            'type': 'ENQUIRY'
+          });
+        }
+      }
+    }
+
+    // Extract admissions
+    if (rawData['admissions'] is List) {
+      for (var a in rawData['admissions']) {
+        if (a is Map<String, dynamic> && a['mobile'] != null) {
+          items.add({
+            'name': a['name'] ?? 'Student',
+            'mobile': a['mobile'],
+            'course': a['course'] ?? '',
+            'status': a['status'] ?? 'ACTIVE',
+            'extra': a['pendingAmount'] != null ? 'Pending Fee: ₹${a['pendingAmount']}' : '',
+            'type': 'ADMISSION'
+          });
+        }
+      }
+    }
+
+    // Extract followups
+    if (rawData['followups'] is List) {
+      for (var f in rawData['followups']) {
+        if (f is Map<String, dynamic> && f['mobile'] != null) {
+          items.add({
+            'name': f['name'] ?? 'Lead',
+            'mobile': f['mobile'],
+            'course': f['course'] ?? '',
+            'status': f['status'] ?? 'PENDING',
+            'extra': 'Time: ${f['followUpTime'] ?? 'N/A'}',
+            'type': 'FOLLOWUP'
+          });
+        }
+      }
+    }
+
+    // Extract pending fee students
+    if (rawData['students'] is List) {
+      for (var s in rawData['students']) {
+        if (s is Map<String, dynamic> && s['mobile'] != null) {
+          items.add({
+            'name': s['name'] ?? 'Student',
+            'mobile': s['mobile'],
+            'course': s['course'] ?? '',
+            'status': 'PENDING FEE',
+            'extra': 'Pending Dues: ₹${s['pendingAmount']}',
+            'type': 'FEE'
+          });
+        }
+      }
+    }
+
+    // Extract mobile_search single item
+    if (rawData['type'] == 'mobile_search') {
+      final e = rawData['enquiry'];
+      final a = rawData['admission'];
+      if (a != null && a['mobile'] != null) {
+        items.add({
+          'name': a['name'] ?? 'Student',
+          'mobile': a['mobile'],
+          'course': a['course'] ?? '',
+          'status': a['status'] ?? 'ACTIVE',
+          'extra': 'Pending Fee: ₹${a['pendingAmount'] ?? 0}',
+          'type': 'ADMISSION'
+        });
+      }
+      if (e != null && e['mobile'] != null) {
+        items.add({
+          'name': e['name'] ?? 'Enquiry',
+          'mobile': e['mobile'],
+          'course': e['course'] ?? '',
+          'status': e['status'] ?? 'NEW',
+          'extra': e['followUpDate'] != null ? 'Follow-up: ${e['followUpDate']}' : '',
+          'type': 'ENQUIRY'
+        });
+      }
+    }
+
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: 10),
+        ...items.map((item) {
+          final name = item['name'];
+          final mobile = item['mobile'].toString();
+          final course = item['course'];
+          final status = item['status'];
+          final extra = item['extra'];
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        name,
+                        style: const TextStyle(
+                          color: Color(0xFF0F172A),
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        status.toString().toUpperCase(),
+                        style: const TextStyle(
+                          color: Colors.blueAccent,
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (course.isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    'Course: $course',
+                    style: const TextStyle(color: Color(0xFF475569), fontSize: 11.5),
+                  ),
+                ],
+                if (extra.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    extra,
+                    style: const TextStyle(color: Colors.deepOrange, fontSize: 11.5, fontWeight: FontWeight.w600),
+                  ),
+                ],
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: InkWell(
+                        onTap: () => _launchAssistantAction(type: 'call', mobile: mobile),
+                        borderRadius: BorderRadius.circular(6),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.blueAccent,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.phone, size: 12, color: Colors.white),
+                              SizedBox(width: 4),
+                              Text('Call', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: InkWell(
+                        onTap: () => _launchAssistantAction(type: 'whatsapp', mobile: mobile),
+                        borderRadius: BorderRadius.circular(6),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Color(0xFF25D366),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.chat, size: 12, color: Colors.white),
+                              SizedBox(width: 4),
+                              Text('WhatsApp', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
     );
   }
 
@@ -958,11 +1180,13 @@ class _ChatMessage {
   final bool isUser;
   final String lang;
   final Map<String, dynamic>? action;
+  final Map<String, dynamic>? rawData;
 
   _ChatMessage({
     required this.text,
     required this.isUser,
     required this.lang,
     this.action,
+    this.rawData,
   });
 }
