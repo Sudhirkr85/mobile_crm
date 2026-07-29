@@ -279,8 +279,9 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                           final status = (student['status'] ?? 'active').toString().toLowerCase();
                           final course = student['course'] ?? 'N/A';
                           final pending = student['remainingAmount'] ?? student['pendingAmount'] ?? 0;
+                          final dueDateStr = _getDueDateDisplay(student);
 
-                           final mobile = student['mobile'] ?? '';
+                          final mobile = student['mobile'] ?? '';
 
                            return Card(
                              color: const Color(0xFFFFFFFF),
@@ -326,10 +327,43 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                                        style: const TextStyle(color: Colors.blueAccent, fontSize: 13, fontWeight: FontWeight.w500),
                                      ),
                                      const SizedBox(height: 4),
-                                     Text(
-                                       'Pending Fees: ₹$pending',
-                                       style: TextStyle(color: pending > 0 ? Colors.redAccent : Colors.blueGrey, fontSize: 12, fontWeight: pending > 0 ? FontWeight.bold : FontWeight.normal),
-                                     ),
+                                     Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            'Pending Fees: ₹$pending',
+                                            style: TextStyle(
+                                              color: pending > 0 ? Colors.redAccent : Colors.blueGrey,
+                                              fontSize: 12,
+                                              fontWeight: pending > 0 ? FontWeight.bold : FontWeight.normal,
+                                            ),
+                                          ),
+                                          if (pending > 0 && dueDateStr.isNotEmpty)
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                              decoration: BoxDecoration(
+                                                color: Colors.amber.shade50,
+                                                borderRadius: BorderRadius.circular(6),
+                                                border: Border.all(color: Colors.amber.shade300),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(Icons.calendar_today, size: 11, color: Colors.amber.shade900),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    'Due: $dueDateStr',
+                                                    style: TextStyle(
+                                                      color: Colors.amber.shade900,
+                                                      fontSize: 11,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                        ],
+                                      ),
                                      const Divider(color: Colors.black12, height: 20),
                                      Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -394,6 +428,47 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
         ],
       ),
     );
+  }
+
+  String _getDueDateDisplay(Map<String, dynamic> student) {
+    final pending = student['remainingAmount'] ?? student['pendingAmount'] ?? 0;
+    final numPending = (pending is num) ? pending.toDouble() : 0.0;
+    if (numPending <= 0) return '';
+    
+    final status = (student['status'] ?? '').toString().toUpperCase();
+    if (status == 'DROPPED') return '';
+
+    dynamic rawDate = student['nextDueDate'];
+    if (rawDate == null || rawDate.toString().isEmpty) {
+      if (student['upcomingInstallment'] != null) {
+        rawDate = student['upcomingInstallment']['dueDate'];
+      }
+    }
+    if (rawDate == null || rawDate.toString().isEmpty) {
+      rawDate = student['fullPaymentDueDate'];
+    }
+    if (rawDate == null || rawDate.toString().isEmpty) {
+      final insts = student['installments'];
+      if (insts is List && insts.isNotEmpty) {
+        for (var inst in insts) {
+          final st = (inst['status'] ?? '').toString().toUpperCase();
+          if (st != 'PAID' && inst['dueDate'] != null) {
+            rawDate = inst['dueDate'];
+            break;
+          }
+        }
+      }
+    }
+
+    if (rawDate != null && rawDate.toString().isNotEmpty) {
+      try {
+        final dt = DateTime.parse(rawDate.toString());
+        return DateFormat('dd MMM yyyy').format(dt);
+      } catch (_) {
+        return rawDate.toString();
+      }
+    }
+    return '';
   }
 
   Map<String, String> _getDateRangeParams() {
