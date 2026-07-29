@@ -100,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 'SSSAM CRM',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Color(0xFFFFFFFF),
+                  color: Color(0xFF1E293B),
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.0,

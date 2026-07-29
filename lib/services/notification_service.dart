@@ -103,25 +103,22 @@ class NotificationService {
         await _saveFCMTokenToBackend(token, apiService);
       }
     } catch (e) {
-      // Silently ignore token errors
+      // Ignore or log error
     }
   }
 
   Future<void> _saveFCMTokenToBackend(String token, ApiService apiService) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final savedToken = prefs.getString('fcm_token');
-
-      // Only send if token changed
-      if (savedToken != token) {
-        await apiService.postRequest('/notifications/fcm-token', data: {
-          'token': token,
-          'deviceInfo': 'android',
-        });
-        await prefs.setString('fcm_token', token);
-      }
+      
+      // Always register token with backend on session init
+      await apiService.postRequest('/notifications/fcm-token', data: {
+        'token': token,
+        'deviceInfo': 'android',
+      });
+      await prefs.setString('fcm_token', token);
     } catch (e) {
-      // Silently ignore backend save errors
+      // Backend save error handled
     }
   }
 

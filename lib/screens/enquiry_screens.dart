@@ -1546,13 +1546,13 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                           Icon(
                             f['icon'] as IconData,
                             size: 14,
-                            color: isSelected ? Colors.white : Colors.blueGrey,
+                            color: isSelected ? Colors.white : Colors.white70,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             f['label'] as String,
                             style: TextStyle(
-                              color: isSelected ? Colors.white : Colors.blueGrey,
+                              color: isSelected ? Colors.white : Colors.white70,
                               fontSize: 12,
                               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                             ),
@@ -1561,14 +1561,14 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                             decoration: BoxDecoration(
-                              color: isSelected ? Colors.white.withOpacity(0.25) : Colors.blueGrey.withOpacity(0.15),
+                              color: isSelected ? Colors.white.withOpacity(0.25) : Colors.blueAccent.withOpacity(0.3),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
                               '$countVal',
                               style: TextStyle(
-                                color: isSelected ? Colors.white : Colors.blueGrey.shade800,
-                                fontSize: 10,
+                                color: isSelected ? Colors.white : const Color(0xFF60A5FA),
+                                fontSize: 11,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
