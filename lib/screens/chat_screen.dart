@@ -863,38 +863,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     ),
                   ),
                 ],
-                if (recentNotes != null && recentNotes.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(8),
-                      border: const Border(left: BorderSide(color: Color(0xFF2563EB), width: 3)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '📜 Recent Notes (Last ${recentNotes.length}):',
-                          style: const TextStyle(color: Color(0xFF1E293B), fontSize: 11, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 3),
-                        ...recentNotes.map((n) {
-                          final noteText = n['note'] ?? n['text'] ?? '';
-                          final noteDate = n['date'] ?? '';
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 2),
-                            child: Text(
-                              '• $noteText${noteDate.isNotEmpty ? ' ($noteDate)' : ''}',
-                              style: const TextStyle(color: Color(0xFF334155), fontSize: 11, fontWeight: FontWeight.w500),
-                            ),
-                          );
-                        }),
-                      ],
-                    ),
-                  ),
-                ],
                 const SizedBox(height: 10),
                 Row(
                   children: [
