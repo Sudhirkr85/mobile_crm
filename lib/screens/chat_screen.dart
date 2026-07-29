@@ -787,23 +787,20 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           final name = item['name'];
           final mobile = item['mobile'].toString();
           final course = item['course'];
-          final status = item['status'];
-          final extra = item['extra'];
-
-          final recentNotes = item['recentNotes'] as List?;
+          final cleanExtra = (extra as String? ?? '').replaceAll(RegExp(r'Time:\s*[^•|]+', caseSensitive: false), '').replaceAll(RegExp(r'Follow-up:\s*[^•|]+', caseSensitive: false), '').trim();
 
           return Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.all(10),
+            margin: const EdgeInsets.only(bottom: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFCBD5E1), width: 1.5),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFCBD5E1), width: 1),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF0F172A).withOpacity(0.06),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
+                  color: const Color(0xFF0F172A).withOpacity(0.04),
+                  blurRadius: 4,
+                  offset: const Offset(0, 1),
                 ),
               ],
             ),
@@ -820,13 +817,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           children: [
                             TextSpan(
                               text: '👤 $name',
-                              style: const TextStyle(color: Color(0xFF0F172A), fontSize: 14, fontWeight: FontWeight.w800),
+                              style: const TextStyle(color: Color(0xFF0F172A), fontSize: 13, fontWeight: FontWeight.w700),
                             ),
                             if (course.isNotEmpty) ...[
-                              const TextSpan(text: ' • ', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
+                              const TextSpan(text: ' • ', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11)),
                               TextSpan(
                                 text: course,
-                                style: const TextStyle(color: Color(0xFF475569), fontSize: 12, fontWeight: FontWeight.w600),
+                                style: const TextStyle(color: Color(0xFF475569), fontSize: 11, fontWeight: FontWeight.w500),
                               ),
                             ],
                           ],
@@ -835,39 +832,38 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 4),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFDBEAFE),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFBFDBFE)),
+                        color: const Color(0xFFE0F2FE),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         status.toString().toUpperCase(),
                         style: const TextStyle(
-                          color: Color(0xFF1D4ED8),
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF0369A1),
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                // Row 2: Mobile + Context Extra Info
+                const SizedBox(height: 3),
+                // Row 2: Mobile + Context Extra Info (NO TIME)
                 Row(
                   children: [
                     Text(
                       '📱 $mobile',
-                      style: const TextStyle(color: Color(0xFF475569), fontSize: 11.5, fontWeight: FontWeight.w500),
+                      style: const TextStyle(color: Color(0xFF64748B), fontSize: 11, fontWeight: FontWeight.w500),
                     ),
-                    if (extra.isNotEmpty) ...[
+                    if (cleanExtra.isNotEmpty) ...[
                       const Text(' • ', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11)),
                       Expanded(
                         child: Text(
-                          extra,
-                          style: const TextStyle(color: Color(0xFFEA580C), fontSize: 11.5, fontWeight: FontWeight.bold),
+                          cleanExtra,
+                          style: const TextStyle(color: Color(0xFFEA580C), fontSize: 11, fontWeight: FontWeight.bold),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -875,8 +871,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     ],
                   ],
                 ),
-                const SizedBox(height: 8),
-                // Row 3: Action Strip
+                const SizedBox(height: 6),
+                // Row 3: Micro Action Strip
                 Row(
                   children: [
                     Expanded(
@@ -884,7 +880,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                         onTap: () => _launchAssistantAction(type: 'call', mobile: mobile),
                         borderRadius: BorderRadius.circular(6),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          padding: const EdgeInsets.symmetric(vertical: 5),
                           decoration: BoxDecoration(
                             color: const Color(0xFF2563EB),
                             borderRadius: BorderRadius.circular(6),
@@ -892,9 +888,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.phone, size: 12, color: Colors.white),
-                              SizedBox(width: 4),
-                              Text('Call', style: TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold)),
+                              Icon(Icons.phone, size: 11, color: Colors.white),
+                              SizedBox(width: 3),
+                              Text('Call', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ),
@@ -906,7 +902,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                         onTap: () => _launchAssistantAction(type: 'whatsapp', mobile: mobile),
                         borderRadius: BorderRadius.circular(6),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          padding: const EdgeInsets.symmetric(vertical: 5),
                           decoration: BoxDecoration(
                             color: const Color(0xFF16A34A),
                             borderRadius: BorderRadius.circular(6),
@@ -914,9 +910,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.chat, size: 12, color: Colors.white),
-                              SizedBox(width: 4),
-                              Text('WhatsApp', style: TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold)),
+                              Icon(Icons.chat, size: 11, color: Colors.white),
+                              SizedBox(width: 3),
+                              Text('WhatsApp', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ),
