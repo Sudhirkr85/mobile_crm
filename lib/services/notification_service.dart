@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -99,11 +100,12 @@ class NotificationService {
   Future<void> _registerFCMToken(ApiService apiService) async {
     try {
       final String? token = await _messaging.getToken();
+      print('🔔 FCM TOKEN FETCHED: $token');
       if (token != null) {
         await _saveFCMTokenToBackend(token, apiService);
       }
     } catch (e) {
-      // Ignore or log error
+      print('❌ FCM TOKEN FETCH ERROR: $e');
     }
   }
 
@@ -111,14 +113,19 @@ class NotificationService {
     try {
       final prefs = await SharedPreferences.getInstance();
       
-      // Always register token with backend on session init
-      await apiService.postRequest('/notifications/fcm-token', data: {
+      print('🚀 SAVING FCM TOKEN TO BACKEND...');
+      final res = await apiService.postRequest('/notifications/fcm-token', data: {
         'token': token,
         'deviceInfo': 'android',
       });
+      print('✅ FCM TOKEN SAVED TO BACKEND: ${res.data}');
       await prefs.setString('fcm_token', token);
     } catch (e) {
-      // Backend save error handled
+      if (e is DioException) {
+        print('❌ FCM TOKEN BACKEND SAVE ERROR RESPONSE: ${e.response?.statusCode} - ${e.response?.data}');
+      } else {
+        print('❌ FCM TOKEN BACKEND SAVE ERROR: $e');
+      }
     }
   }
 
