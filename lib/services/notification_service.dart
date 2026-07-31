@@ -10,14 +10,17 @@ import 'api_service.dart';
 @pragma('vm:entry-point')
 Future<void> firebaseBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  // Show local notification when app is in background/terminated
-  final FlutterLocalNotificationsPlugin plugin = FlutterLocalNotificationsPlugin();
-  const AndroidInitializationSettings androidSettings =
-      AndroidInitializationSettings('@mipmap/launcher_icon');
-  const InitializationSettings initSettings =
-      InitializationSettings(android: androidSettings);
-  await plugin.initialize(initSettings);
-  _showLocalNotification(plugin, message);
+  // If the payload has a notification block, Android OS handles displaying it natively.
+  // Only display local notification manually if there is no notification block (data-only payload).
+  if (message.notification == null) {
+    final FlutterLocalNotificationsPlugin plugin = FlutterLocalNotificationsPlugin();
+    const AndroidInitializationSettings androidSettings =
+        AndroidInitializationSettings('@mipmap/launcher_icon');
+    const InitializationSettings initSettings =
+        InitializationSettings(android: androidSettings);
+    await plugin.initialize(initSettings);
+    _showLocalNotification(plugin, message);
+  }
 }
 
 void _showLocalNotification(
