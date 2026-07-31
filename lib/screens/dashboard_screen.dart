@@ -120,7 +120,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
 
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        desiredAccuracy: LocationAccuracy.medium,
+        timeLimit: const Duration(seconds: 4),
       );
 
       _currentPosition = position;

@@ -368,9 +368,12 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                                      Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Text(
-                                            mobile,
-                                            style: const TextStyle(color: Color(0xFF64748B), fontSize: 12, fontWeight: FontWeight.w500),
+                                          Flexible(
+                                            child: Text(
+                                              mobile,
+                                              style: const TextStyle(color: Color(0xFF64748B), fontSize: 12, fontWeight: FontWeight.w500),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
                                           ),
                                           Row(
                                             children: [
