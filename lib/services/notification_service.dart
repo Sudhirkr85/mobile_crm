@@ -25,8 +25,21 @@ Future<void> firebaseBackgroundHandler(RemoteMessage message) async {
 
 void _showLocalNotification(
     FlutterLocalNotificationsPlugin plugin, RemoteMessage message) {
-  final String title = message.notification?.title ?? message.data['title'] ?? 'SSSAM CRM';
-  final String body = message.notification?.body ?? message.data['body'] ?? '';
+  final String? rawTitle = message.notification?.title ?? message.data['title'];
+  final String? rawBody = message.notification?.body ?? message.data['body'];
+
+  // Suppress notification if both title and body are empty/missing, or if body is empty and title is generic
+  if ((rawBody == null || rawBody.trim().isEmpty) &&
+      (rawTitle == null || rawTitle.trim().isEmpty || rawTitle.trim() == 'SSSAM CRM')) {
+    return;
+  }
+
+  final String title = (rawTitle != null && rawTitle.trim().isNotEmpty)
+      ? rawTitle.trim()
+      : 'SSSAM CRM Alert';
+  final String body = (rawBody != null && rawBody.trim().isNotEmpty)
+      ? rawBody.trim()
+      : title;
   final String type = message.data['type'] ?? 'general';
 
   plugin.show(
