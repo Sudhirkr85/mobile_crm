@@ -25,6 +25,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   bool _isListening = false;
   bool _isLoading = false;
   bool _isSpeaking = false;
+  int? _speakingMsgIndex;
   bool _speechAvailable = false;
   String _selectedLang = 'hindi';
   String _userDisplayName = '';
@@ -139,7 +140,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     await _tts.setVolume(1.0);
     _tts.setCompletionHandler(() {
       if (mounted) {
-        setState(() => _isSpeaking = false);
+        setState(() {
+          _isSpeaking = false;
+          _speakingMsgIndex = null;
+        });
       }
     });
   }
@@ -220,14 +224,19 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     setState(() => _isListening = value);
   }
 
-  Future<void> _speakText(String text, String lang) async {
-    if (_isSpeaking) {
+  Future<void> _speakText(String text, String lang, int msgIndex) async {
+    if (_isSpeaking && _speakingMsgIndex == msgIndex) {
       await _tts.stop();
       if (mounted) {
-        setState(() => _isSpeaking = false);
+        setState(() {
+          _isSpeaking = false;
+          _speakingMsgIndex = null;
+        });
       }
       return;
     }
+
+    await _tts.stop();
 
     final cleanText = text
         .replaceAll('**', '')
@@ -239,9 +248,12 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     await _tts.setLanguage(lang == 'hindi' ? 'hi-IN' : 'en-IN');
     await _tts.setSpeechRate(lang == 'hindi' ? 0.5 : 0.45);
     if (mounted) {
-      setState(() => _isSpeaking = true);
+      setState(() {
+        _isSpeaking = true;
+        _speakingMsgIndex = msgIndex;
+      });
     }
-    await _tts.speak(cleanText.substring(0, cleanText.length.clamp(0, 500)));
+    await _tts.speak(cleanText);
   }
 
   String _sanitizeAssistantMessage(String text) {
@@ -514,23 +526,19 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   Widget _buildQuickChips() {
     final chips = _selectedLang == 'english'
         ? [
-            ('🎓 Direct Admission', 'admionss setup kru', Colors.purple),
-            ('➕ New Enquiry', 'enqry add krna h', Colors.deepOrange),
-            ('🔄 Update Status', 'status update karna hai', Colors.cyan),
             ('📊 Overview', 'show today\'s CRM overview & statistics', Colors.indigo),
             ('📅 Follow-ups', 'show today\'s follow-ups', Colors.orange),
             ('💰 Pending Fees', 'show students with pending fees', Colors.teal),
             ('⭐ Interested Leads', 'show interested leads', Colors.amber),
+            ('🆕 New Enquiries', 'show new enquiries', Colors.blue),
             ('✍️ Draft Message', 'draft a fee reminder message', Colors.pink),
           ]
         : [
-            ('🎓 Direct Admission', 'admionss setup kru', Colors.purple),
-            ('➕ Nayi Enquiry', 'enqry add krna h', Colors.deepOrange),
-            ('🔄 Update Status', 'status update karna hai', Colors.cyan),
             ('📊 Overview', 'aaj ka summary aur overview dikhao', Colors.indigo),
             ('📅 Follow-ups', 'aaj ke follow ups batao', Colors.orange),
             ('💰 Pending Fees', 'pending fee wale students dikhao', Colors.teal),
             ('⭐ Interested Leads', 'interested leads dikhao', Colors.amber),
+            ('🆕 Enquiries', 'new enquiries dikhao', Colors.blue),
             ('✍️ Draft Message', 'fee reminder message draft karo', Colors.pink),
           ];
 
@@ -765,28 +773,36 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           ),
                           const SizedBox(width: 6),
                           GestureDetector(
-                            onTap: () => _speakText(msg.text, msg.lang),
-                            child: Container(
+                            onTap: () => _speakText(msg.text, msg.lang, index),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF6366F1).withValues(alpha: 0.08),
+                                color: (_isSpeaking && _speakingMsgIndex == index)
+                                    ? const Color(0xFF6366F1).withValues(alpha: 0.22)
+                                    : const Color(0xFF6366F1).withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(12),
+                                border: (_isSpeaking && _speakingMsgIndex == index)
+                                    ? Border.all(color: const Color(0xFF6366F1), width: 1)
+                                    : null,
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
-                                    _isSpeaking ? Icons.stop_circle_rounded : Icons.volume_up_rounded,
+                                    (_isSpeaking && _speakingMsgIndex == index)
+                                        ? Icons.stop_circle_rounded
+                                        : Icons.volume_up_rounded,
                                     color: const Color(0xFF6366F1),
                                     size: 13,
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    _isSpeaking ? 'Stop' : 'Listen',
+                                    (_isSpeaking && _speakingMsgIndex == index) ? 'Stop' : 'Listen',
                                     style: const TextStyle(
                                       color: Color(0xFF6366F1),
                                       fontSize: 11,
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight: FontWeight.w700,
                                     ),
                                   ),
                                 ],
