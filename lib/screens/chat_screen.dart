@@ -513,7 +513,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         ? [
             ('📊 Overview', 'show today\'s CRM overview & statistics', Colors.indigo),
             ('➕ New Enquiry', 'new enquiry add karo', Colors.purple),
-            ('🎓 Direct Admission', 'direct admission karna hai', Colors.emerald),
+            ('🎓 Direct Admission', 'direct admission karna hai', Colors.teal),
             ('📅 Follow-ups', 'show today\'s follow-ups', Colors.orange),
             ('💰 Pending Fees', 'show students with pending fees', Colors.teal),
             ('⭐ Interested Leads', 'show interested leads', Colors.amber),
@@ -525,7 +525,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         : [
             ('📊 Overview', 'aaj ka summary aur overview dikhao', Colors.indigo),
             ('➕ New Enquiry', 'nayi enquiry add karo', Colors.purple),
-            ('🎓 Direct Admission', 'direct admission karna hai', Colors.emerald),
+            ('🎓 Direct Admission', 'direct admission karna hai', Colors.teal),
             ('📅 Follow-ups', 'aaj ke follow ups batao', Colors.orange),
             ('💰 Pending Fees', 'pending fee wale students dikhao', Colors.teal),
             ('⭐ Interested Leads', 'interested leads dikhao', Colors.amber),
