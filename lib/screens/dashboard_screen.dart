@@ -580,7 +580,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                     // Quick Actions
                     const Text(
-                      'QUICK ACCESS MODULES',
+                      'QUICK ACTIONS & MODULES',
                       style: TextStyle(
                         color: Color(0xFF64748B),
                         fontSize: 12,
@@ -589,6 +589,56 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            icon: const Icon(Icons.account_balance_wallet_rounded, color: Colors.white, size: 18),
+                            label: const Text('Direct Admission', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF7C3AED),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              elevation: 2,
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const ConvertAdmissionScreen(
+                                    enquiryId: '',
+                                    studentName: '',
+                                    studentMobile: '',
+                                    studentEmail: '',
+                                    course: '',
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            icon: const Icon(Icons.person_add_alt_1_rounded, color: Colors.white, size: 18),
+                            label: const Text('New Enquiry', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF0D9488),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              elevation: 2,
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const EnquiryListScreen()),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
                     Builder(
                       builder: (context) {
                         final cards = [

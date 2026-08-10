@@ -2786,6 +2786,9 @@ class ConvertAdmissionScreen extends StatefulWidget {
 
 class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _directNameController = TextEditingController();
+  final _directMobileController = TextEditingController();
+  final _directCourseController = TextEditingController();
   final _totalFeesController = TextEditingController();
   final _regAmountController = TextEditingController();
 
@@ -2801,12 +2804,18 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
   @override
   void initState() {
     super.initState();
+    _directNameController.text = widget.studentName;
+    _directMobileController.text = widget.studentMobile;
+    _directCourseController.text = widget.course;
     _totalFeesController.addListener(_onAmountChanged);
     _regAmountController.addListener(_onAmountChanged);
   }
 
   @override
   void dispose() {
+    _directNameController.dispose();
+    _directMobileController.dispose();
+    _directCourseController.dispose();
     _totalFeesController.removeListener(_onAmountChanged);
     _regAmountController.removeListener(_onAmountChanged);
     _totalFeesController.dispose();
@@ -3113,8 +3122,11 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
       final apiService = Provider.of<ApiService>(context, listen: false);
       final DateFormat df = DateFormat('yyyy-MM-dd');
 
-      // Normalize mobile number
-      String cleanMobile = widget.studentMobile.replaceAll(RegExp(r'\D'), '');
+      final finalName = _directNameController.text.trim().isNotEmpty ? _directNameController.text.trim() : widget.studentName;
+      final finalMobile = _directMobileController.text.trim().isNotEmpty ? _directMobileController.text.trim() : widget.studentMobile;
+      final finalCourse = _directCourseController.text.trim().isNotEmpty ? _directCourseController.text.trim() : widget.course;
+
+      String cleanMobile = finalMobile.replaceAll(RegExp(r'\D'), '');
       if (cleanMobile.startsWith('91') && cleanMobile.length == 11) {
         cleanMobile = cleanMobile.substring(2);
       } else if (cleanMobile.startsWith('91') && cleanMobile.length == 12) {
@@ -3123,14 +3135,14 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
 
       final emailVal = widget.studentEmail.trim();
       final Map<String, dynamic> data = {
-        'enquiryId': widget.enquiryId,
-        'name': widget.studentName,
+        if (widget.enquiryId.isNotEmpty) 'enquiryId': widget.enquiryId,
+        'name': finalName,
         'mobile': cleanMobile,
         if (emailVal.isNotEmpty) 'email': emailVal,
-        'studentName': widget.studentName,
+        'studentName': finalName,
         'studentMobile': cleanMobile,
         if (emailVal.isNotEmpty) 'studentEmail': emailVal,
-        'course': widget.course,
+        'course': finalCourse,
         'totalFees': total,
         'registrationAmount': initial,
         'paymentType': _paymentType,
@@ -3191,8 +3203,56 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Convert lead "${widget.studentName}" into a registered admission.', style: const TextStyle(color: Colors.blueGrey)),
+              Text(
+                widget.studentName.isNotEmpty
+                    ? 'Convert lead "${widget.studentName}" into a registered admission.'
+                    : 'Enter student details below to setup a new Direct Admission.',
+                style: const TextStyle(color: Colors.blueGrey),
+              ),
               const SizedBox(height: 24),
+
+              if (widget.studentName.isEmpty) ...[
+                TextFormField(
+                  controller: _directNameController,
+                  style: const TextStyle(color: Color(0xFF1E293B)),
+                  decoration: const InputDecoration(
+                    labelText: 'Student Full Name *',
+                    labelStyle: TextStyle(color: Colors.blueGrey),
+                  ),
+                  validator: (val) {
+                    if (val == null || val.trim().isEmpty) return 'Please enter student name';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _directMobileController,
+                  keyboardType: TextInputType.phone,
+                  style: const TextStyle(color: Color(0xFF1E293B)),
+                  decoration: const InputDecoration(
+                    labelText: '10-Digit Mobile Number *',
+                    labelStyle: TextStyle(color: Colors.blueGrey),
+                  ),
+                  validator: (val) {
+                    if (val == null || val.trim().length < 10) return 'Please enter a valid 10-digit mobile number';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _directCourseController,
+                  style: const TextStyle(color: Color(0xFF1E293B)),
+                  decoration: const InputDecoration(
+                    labelText: 'Course Name *',
+                    labelStyle: TextStyle(color: Colors.blueGrey),
+                  ),
+                  validator: (val) {
+                    if (val == null || val.trim().isEmpty) return 'Please enter course name';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+              ],
 
               DropdownButtonFormField<String>(
                 value: _paymentType,

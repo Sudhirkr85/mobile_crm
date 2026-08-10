@@ -511,22 +511,24 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   Widget _buildQuickChips() {
     final chips = _selectedLang == 'english'
         ? [
+            ('🎓 Direct Admission', 'admionss setup kru', Colors.purple),
+            ('➕ New Enquiry', 'enqry add krna h', Colors.deepOrange),
+            ('🔄 Update Status', 'status update karna hai', Colors.cyan),
             ('📊 Overview', 'show today\'s CRM overview & statistics', Colors.indigo),
             ('📅 Follow-ups', 'show today\'s follow-ups', Colors.orange),
             ('💰 Pending Fees', 'show students with pending fees', Colors.teal),
             ('⭐ Interested Leads', 'show interested leads', Colors.amber),
-            ('🆕 Enquiries', 'show new enquiries', Colors.blue),
             ('✍️ Draft Message', 'draft a fee reminder message', Colors.pink),
-            ('💳 Payments', 'show payment & collection report', Colors.green),
           ]
         : [
+            ('🎓 Direct Admission', 'admionss setup kru', Colors.purple),
+            ('➕ Nayi Enquiry', 'enqry add krna h', Colors.deepOrange),
+            ('🔄 Update Status', 'status update karna hai', Colors.cyan),
             ('📊 Overview', 'aaj ka summary aur overview dikhao', Colors.indigo),
             ('📅 Follow-ups', 'aaj ke follow ups batao', Colors.orange),
             ('💰 Pending Fees', 'pending fee wale students dikhao', Colors.teal),
             ('⭐ Interested Leads', 'interested leads dikhao', Colors.amber),
-            ('🆕 Enquiries', 'new enquiries dikhao', Colors.blue),
             ('✍️ Draft Message', 'fee reminder message draft karo', Colors.pink),
-            ('💳 Payments', 'aaj ka payment aur collection report dikhao', Colors.green),
           ];
 
     return Container(
