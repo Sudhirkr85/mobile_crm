@@ -517,7 +517,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             ('⭐ Interested Leads', 'show interested leads', Colors.amber),
             ('🆕 Enquiries', 'show new enquiries', Colors.blue),
             ('✍️ Draft Message', 'draft a fee reminder message', Colors.pink),
-            ('📋 Attendance', 'show today\'s staff attendance report', Colors.cyan),
             ('💳 Payments', 'show payment & collection report', Colors.green),
           ]
         : [
@@ -527,7 +526,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             ('⭐ Interested Leads', 'interested leads dikhao', Colors.amber),
             ('🆕 Enquiries', 'new enquiries dikhao', Colors.blue),
             ('✍️ Draft Message', 'fee reminder message draft karo', Colors.pink),
-            ('📋 Attendance', 'aaj ki staff attendance report dikhao', Colors.cyan),
             ('💳 Payments', 'aaj ka payment aur collection report dikhao', Colors.green),
           ];
 
