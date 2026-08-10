@@ -821,40 +821,56 @@ class _AdmissionListScreenState extends State<AdmissionListScreen> {
                         ));
                         return;
                       }
+                      if (amount > remainingAmount) {
+                        showDialog(context: context, builder: (_) => AlertDialog(
+                          title: const Text('Validation Error'),
+                          content: Text('Amount cannot exceed remaining balance (₹${remainingAmount.toStringAsFixed(0)}).'),
+                          actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
+                        ));
+                        return;
+                      }
                       setDialogState(() { isProcessing = true; });
                       final apiService = Provider.of<ApiService>(context, listen: false);
                       final df = DateFormat('yyyy-MM-dd');
-                      final data = {
+                      final data = <String, dynamic>{
                         'amount': amount,
-                        'paymentType': 'INSTALLMENT',
                         'paymentMode': paymentMode,
                         'paymentDate': df.format(paymentDate),
-                        'note': noteController.text.trim(),
                       };
+                      if (noteController.text.trim().isNotEmpty) {
+                        data['note'] = noteController.text.trim();
+                      }
                       try {
-                        final res = await apiService.postRequest('/admissions/\${student[\'_id\']}/payments', data: data);
-                        if (res.statusCode == 200 || res.statusCode == 210) {
-                          if (context.mounted) Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Payment recorded successfully!'), backgroundColor: Colors.green),
-                          );
+                        final admissionId = student['_id'] ?? student['id'];
+                        final res = await apiService.postRequest('/admissions/$admissionId/payments', data: data);
+                        if (res.statusCode == 200 || res.statusCode == 201) {
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Payment recorded successfully!'), backgroundColor: Colors.green),
+                            );
+                          }
                           _loadAdmissions(isFirstLoad: true);
                         } else {
                           setDialogState(() { isProcessing = false; });
                           final msg = res.data?['message'] ?? 'Failed to record payment';
-                          showDialog(context: context, builder: (_) => AlertDialog(
-                            title: const Text('Payment Failed'),
-                            content: Text(msg),
-                            actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
-                          ));
+                          if (context.mounted) {
+                            showDialog(context: context, builder: (_) => AlertDialog(
+                              title: const Text('Payment Failed'),
+                              content: Text(msg),
+                              actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
+                            ));
+                          }
                         }
                       } catch (e) {
                         setDialogState(() { isProcessing = false; });
-                        showDialog(context: context, builder: (_) => AlertDialog(
-                          title: const Text('Payment Failed'),
-                          content: Text(ApiService.getReadableError(e)),
-                          actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
-                        ));
+                        if (context.mounted) {
+                          showDialog(context: context, builder: (_) => AlertDialog(
+                            title: const Text('Payment Failed'),
+                            content: Text(ApiService.getReadableError(e)),
+                            actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
+                          ));
+                        }
                       }
                     },
                     child: isProcessing

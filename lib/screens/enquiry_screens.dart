@@ -7,6 +7,94 @@ import 'package:url_launcher/url_launcher.dart';
 import '../services/api_service.dart';
 import 'admission_screens.dart';
 
+class EnquiryStatusStyle {
+  final Color textColor;
+  final Color bgColor;
+  final Color borderColor;
+  final String label;
+
+  const EnquiryStatusStyle({
+    required this.textColor,
+    required this.bgColor,
+    required this.borderColor,
+    required this.label,
+  });
+
+  static EnquiryStatusStyle get(dynamic status) {
+    final s = (status?.toString() ?? 'NEW').toUpperCase().replaceAll(' ', '_');
+    switch (s) {
+      case 'INTERESTED':
+        return const EnquiryStatusStyle(
+          textColor: Color(0xFF15803D), // Tailwind text-green-700
+          bgColor: Color(0xFFDCFCE7),   // Tailwind bg-green-100 (mint highlight)
+          borderColor: Color(0xFF86EFAC),// Tailwind border-green-300
+          label: 'Interested',
+        );
+      case 'CONTACTED':
+        return const EnquiryStatusStyle(
+          textColor: Color(0xFF1D4ED8), // Tailwind text-blue-700
+          bgColor: Color(0xFFDBEAFE),   // Tailwind bg-blue-100
+          borderColor: Color(0xFF93C5FD),// Tailwind border-blue-300
+          label: 'Contacted',
+        );
+      case 'NOT_INTERESTED':
+      case 'LOST':
+        return const EnquiryStatusStyle(
+          textColor: Color(0xFFB91C1C), // Tailwind text-red-700
+          bgColor: Color(0xFFFEE2E2),   // Tailwind bg-red-100
+          borderColor: Color(0xFFFCA5A5),// Tailwind border-red-300
+          label: 'Not Interested',
+        );
+      case 'ADMITTED':
+      case 'CONVERTED':
+        return const EnquiryStatusStyle(
+          textColor: Color(0xFF047857), // Tailwind text-emerald-700
+          bgColor: Color(0xFFD1FAE5),   // Tailwind bg-emerald-100
+          borderColor: Color(0xFF6EE7B7),// Tailwind border-emerald-300
+          label: 'Admitted',
+        );
+      case 'CREATED':
+        return const EnquiryStatusStyle(
+          textColor: Color(0xFF4338CA),
+          bgColor: Color(0xFFE0E7FF),
+          borderColor: Color(0xFFA5B4FC),
+          label: 'Created',
+        );
+      case 'NEW':
+      default:
+        return const EnquiryStatusStyle(
+          textColor: Color(0xFF475569), // Tailwind text-slate-600
+          bgColor: Color(0xFFF1F5F9),   // Tailwind bg-slate-100
+          borderColor: Color(0xFFCBD5E1),// Tailwind border-slate-300
+          label: 'New Lead',
+        );
+    }
+  }
+
+  Widget buildBadge({
+    double fontSize = 11,
+    EdgeInsets padding = const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+  }) {
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: borderColor, width: 1),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: textColor,
+          fontSize: fontSize,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 0.2,
+        ),
+      ),
+    );
+  }
+}
+
 class EnquiryListScreen extends StatefulWidget {
   const EnquiryListScreen({super.key});
 
@@ -117,9 +205,9 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
     bool isSaving = false;
 
     final statuses = [
-      {'value': 'CONTACTED', 'label': 'Contacted', 'color': Colors.blue},
-      {'value': 'INTERESTED', 'label': 'Interested', 'color': Colors.green},
-      {'value': 'NOT_INTERESTED', 'label': 'Not Interested', 'color': Colors.red},
+      {'value': 'CONTACTED', 'label': 'Contacted', 'style': EnquiryStatusStyle.get('CONTACTED')},
+      {'value': 'INTERESTED', 'label': 'Interested', 'style': EnquiryStatusStyle.get('INTERESTED')},
+      {'value': 'NOT_INTERESTED', 'label': 'Not Interested', 'style': EnquiryStatusStyle.get('NOT_INTERESTED')},
     ];
 
     final now = DateTime.now();
@@ -179,20 +267,23 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                       runSpacing: 8,
                       children: statuses.map((s) {
                         final isSelected = currentStatus == s['value'];
-                        final color = s['color'] as Color;
+                        final style = s['style'] as EnquiryStatusStyle;
                         return GestureDetector(
                           onTap: () => setSheet(() => currentStatus = s['value'] as String),
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                             decoration: BoxDecoration(
-                              color: isSelected ? color : color.withOpacity(0.08),
+                              color: isSelected ? style.textColor : style.bgColor,
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: isSelected ? color : color.withOpacity(0.3)),
+                              border: Border.all(
+                                color: isSelected ? style.textColor : style.borderColor,
+                                width: isSelected ? 1.5 : 1,
+                              ),
                             ),
                             child: Text(
                               s['label'] as String,
                               style: TextStyle(
-                                color: isSelected ? Colors.white : color,
+                                color: isSelected ? Colors.white : style.textColor,
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -1083,14 +1174,7 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
 }
 
   void _showDuplicateDialog(Map<String, dynamic> existing, String newName, String newMobile) {
-    final status = existing['status']?.toString();
-    Color statusColor = Colors.blueGrey;
-    String statusLabel = status ?? 'Unknown';
-    if (status == 'CONTACTED') { statusColor = Colors.blue; statusLabel = 'Contacted'; }
-    else if (status == 'INTERESTED') { statusColor = Colors.green; statusLabel = 'Interested'; }
-    else if (status == 'NOT_INTERESTED') { statusColor = Colors.red; statusLabel = 'Not Interested'; }
-    else if (status == 'ADMITTED') { statusColor = Colors.teal; statusLabel = 'Admitted'; }
-    else if (status == null) { statusLabel = 'New Lead'; }
+    final statusStyle = EnquiryStatusStyle.get(existing['status']);
 
     String? followUpText;
     if (existing['followUpDate'] != null) {
@@ -1179,15 +1263,7 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                                 const SizedBox(width: 8),
                                 const Text('Status', style: TextStyle(color: Colors.blueGrey, fontSize: 13)),
                                 const Spacer(),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: statusColor.withOpacity(0.15),
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(color: statusColor.withOpacity(0.4)),
-                                  ),
-                                  child: Text(statusLabel, style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.bold)),
-                                ),
+                                statusStyle.buildBadge(fontSize: 11),
                               ],
                             ),
                           ),
@@ -1640,12 +1716,7 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                             );
                           }
                           final lead = _enquiries[index];
-                          final status = lead['status'] ?? 'NEW';
-                          Color statusColor = Colors.grey;
-                          if (status == 'CONTACTED') statusColor = Colors.blue;
-                          if (status == 'INTERESTED') statusColor = Colors.orange;
-                          if (status == 'ADMITTED') statusColor = Colors.teal;
-                          if (status == 'NOT_INTERESTED') statusColor = Colors.redAccent;
+                          final statusStyle = EnquiryStatusStyle.get(lead['status']);
                            final mobile = lead['mobile'] ?? '';
                            final course = lead['course'] ?? 'General Enquiry';
                            final source = lead['source'] ?? lead['leadSource'] ?? 'Unknown';
@@ -1690,18 +1761,7 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                                              style: const TextStyle(color: Color(0xFF1E293B), fontSize: 16, fontWeight: FontWeight.bold),
                                            ),
                                          ),
-                                         Container(
-                                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                           decoration: BoxDecoration(
-                                             color: statusColor.withOpacity(0.12),
-                                             borderRadius: BorderRadius.circular(8),
-                                             border: Border.all(color: statusColor.withOpacity(0.4)),
-                                           ),
-                                           child: Text(
-                                             status.replaceAll('_', ' '),
-                                             style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold),
-                                           ),
-                                         ),
+                                         statusStyle.buildBadge(fontSize: 11),
                                        ],
                                      ),
                                      const SizedBox(height: 8),
@@ -1731,18 +1791,6 @@ class _EnquiryListScreenState extends State<EnquiryListScreen> {
                                              style: TextStyle(color: Colors.grey.shade700, fontSize: 11),
                                            ),
                                          ),
-                                         if (lead['assignedTo'] != null)
-                                           Container(
-                                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                             decoration: BoxDecoration(
-                                               color: Colors.purple.shade50,
-                                               borderRadius: BorderRadius.circular(6),
-                                             ),
-                                             child: Text(
-                                               'Assigned: ${(lead['assignedTo'] is Map) ? (lead['assignedTo']['name'] ?? 'Counselor') : 'Assigned'}',
-                                               style: TextStyle(color: Colors.purple.shade700, fontSize: 11, fontWeight: FontWeight.w500),
-                                             ),
-                                           ),
                                        ],
                                      ),
                                      if (followUpBadge.isNotEmpty) ...[
@@ -1950,9 +1998,9 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
     bool isSaving = false;
 
     final statuses = [
-      {'value': 'CONTACTED', 'label': 'Contacted', 'color': Colors.blue},
-      {'value': 'INTERESTED', 'label': 'Interested', 'color': Colors.green},
-      {'value': 'NOT_INTERESTED', 'label': 'Not Interested', 'color': Colors.red},
+      {'value': 'CONTACTED', 'label': 'Contacted', 'style': EnquiryStatusStyle.get('CONTACTED')},
+      {'value': 'INTERESTED', 'label': 'Interested', 'style': EnquiryStatusStyle.get('INTERESTED')},
+      {'value': 'NOT_INTERESTED', 'label': 'Not Interested', 'style': EnquiryStatusStyle.get('NOT_INTERESTED')},
     ];
 
     // Quick date shortcuts
@@ -2017,23 +2065,26 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
                       runSpacing: 8,
                       children: statuses.map((s) {
                         final isSelected = currentStatus == s['value'];
-                        final color = s['color'] as Color;
+                        final style = s['style'] as EnquiryStatusStyle;
                         return GestureDetector(
                           onTap: () => setSheet(() => currentStatus = s['value'] as String),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 150),
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                             decoration: BoxDecoration(
-                              color: isSelected ? color.withOpacity(0.2) : const Color(0xFFF8FAFC),
+                              color: isSelected ? style.textColor : style.bgColor,
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: isSelected ? color : Colors.black12, width: isSelected ? 1.5 : 1),
+                              border: Border.all(
+                                color: isSelected ? style.textColor : style.borderColor,
+                                width: isSelected ? 1.5 : 1,
+                              ),
                             ),
                             child: Text(
                               s['label'] as String,
                               style: TextStyle(
-                                color: isSelected ? color : Colors.blueGrey,
+                                color: isSelected ? Colors.white : style.textColor,
                                 fontSize: 12,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
@@ -2489,39 +2540,7 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
                   final status = historyItem['status'] ?? 'UPDATE';
                   final note = historyItem['note'] ?? '';
                   final changedAt = _formatTimelineDate(historyItem['changedAt']?.toString());
-
-                  Color statusColor;
-                  Color statusBg;
-                  switch (status.toString().toUpperCase()) {
-                    case 'NEW':
-                      statusColor = const Color(0xFF3B82F6);
-                      statusBg = const Color(0xFF3B82F6).withOpacity(0.15);
-                      break;
-                    case 'CONTACTED':
-                      statusColor = const Color(0xFFF59E0B);
-                      statusBg = const Color(0xFFF59E0B).withOpacity(0.15);
-                      break;
-                    case 'INTERESTED':
-                      statusColor = const Color(0xFF10B981);
-                      statusBg = const Color(0xFF10B981).withOpacity(0.15);
-                      break;
-                    case 'NOT_INTERESTED':
-                      statusColor = const Color(0xFFEF4444);
-                      statusBg = const Color(0xFFEF4444).withOpacity(0.15);
-                      break;
-                    case 'ADMITTED':
-                    case 'CONVERTED':
-                      statusColor = const Color(0xFF8B5CF6);
-                      statusBg = const Color(0xFF8B5CF6).withOpacity(0.15);
-                      break;
-                    case 'CREATED':
-                      statusColor = Colors.indigoAccent;
-                      statusBg = Colors.indigoAccent.withOpacity(0.15);
-                      break;
-                    default:
-                      statusColor = Colors.blueGrey;
-                      statusBg = Colors.blueGrey.withOpacity(0.15);
-                  }
+                  final statusStyle = EnquiryStatusStyle.get(status.toString());
 
                   final changedByObj = historyItem['changedBy'];
                   String updaterName = 'System';
@@ -2543,7 +2562,7 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
                     decoration: BoxDecoration(
                       color: const Color(0xFFFFFFFF),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: statusColor.withOpacity(0.2)),
+                      border: Border.all(color: statusStyle.borderColor.withOpacity(0.5)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2551,17 +2570,7 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: statusBg,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                status,
-                                style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold),
-                              ),
-                            ),
+                            statusStyle.buildBadge(fontSize: 10, padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3)),
                             Text(
                               changedAt,
                               style: const TextStyle(color: Colors.blueGrey, fontSize: 12),
@@ -2638,12 +2647,7 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
   }
 
   Widget _buildStatusRow(String label, dynamic value) {
-    final status = value?.toString() ?? 'NEW';
-    Color statusColor = Colors.grey;
-    if (status == 'CONTACTED') statusColor = Colors.blue;
-    if (status == 'INTERESTED') statusColor = Colors.orange;
-    if (status == 'ADMITTED' || status == 'CONVERTED') statusColor = Colors.teal;
-    if (status == 'NOT_INTERESTED' || status == 'LOST') statusColor = Colors.redAccent;
+    final statusStyle = EnquiryStatusStyle.get(value?.toString());
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 4.0),
@@ -2653,18 +2657,7 @@ class _EnquiryDetailScreenState extends State<EnquiryDetailScreen> {
           const SizedBox(width: 8),
           Text(label, style: const TextStyle(color: Colors.blueGrey, fontSize: 14)),
           const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: statusColor.withOpacity(0.5)),
-            ),
-            child: Text(
-              status,
-              style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.bold),
-            ),
-          ),
+          statusStyle.buildBadge(fontSize: 12, padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5)),
         ],
       ),
     );
