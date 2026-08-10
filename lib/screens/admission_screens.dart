@@ -3152,8 +3152,8 @@ class _ConvertAdmissionScreenState extends State<ConvertAdmissionScreen> {
         }).toList();
 
         if (initial > 0) {
-          data['initialPayment'] = initial;
-          data['initialPaymentMode'] = _paymentMode;
+          data['registrationAmount'] = initial;
+          data['paymentMode'] = _paymentMode;
           data['paymentDate'] = df.format(_initialPaymentDate);
         }
       }
