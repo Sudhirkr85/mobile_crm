@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:provider/provider.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
@@ -69,12 +70,26 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   String _buildWelcomeMessage(String firstName) {
-    final greetingName = firstName.isNotEmpty ? ' $firstName' : '';
-    if (_selectedLang == 'english') {
-      return 'Hello$greetingName! Welcome to the SSSAM AI Assistant.\n\nIn English mode, I will reply in proper English. If you switch to Hindi mode, you can type or speak in Hinglish and I will respond in natural Hindi written in English letters.\n\nYou can use the Guide / Help chip to see example prompts.';
+    final hour = DateTime.now().hour;
+    var salutation = 'Good Morning';
+    var icon = '🌅';
+    if (hour >= 12 && hour < 17) {
+      salutation = 'Good Afternoon';
+      icon = '☀️';
+    } else if (hour >= 17 && hour < 22) {
+      salutation = 'Good Evening';
+      icon = '🌆';
+    } else if (hour >= 22 || hour < 5) {
+      salutation = 'Hello';
+      icon = '🌙';
     }
 
-    return 'Namaste$greetingName! SSSAM AI Assistant mein aapka swagat hai.\n\nHindi mode mein aap Hinglish mein type ya bol sakte hain aur main Hindi style mein reply dunga. English mode mein main proper English use karunga.\n\nGuide / Help chip se examples dekh sakte hain.';
+    final namePart = firstName.isNotEmpty ? ' $firstName' : '';
+    if (_selectedLang == 'english') {
+      return '$salutation$namePart! $icon\n\nI am your Jiya AI assistant. You can speak 🎙️ or type 💬 to ask anything. What would you like to check today?';
+    }
+
+    return '$salutation$namePart! $icon\n\nMain aapki Jiya AI assistant hoon. Aap mujhse bolkar 🎙️ ya likhkar 💬 puch sakte hain. Aapko aaj kya jankari chahiye ya kaunsa kaam karna hai?';
   }
 
   Future<void> _initSpeech() async {
@@ -118,7 +133,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _initTts() async {
-    await _tts.setLanguage('hi-IN');
+    await _tts.setLanguage(_selectedLang == 'hindi' ? 'hi-IN' : 'en-IN');
     await _tts.setSpeechRate(0.52);
     await _tts.setPitch(1.0);
     await _tts.setVolume(1.0);
@@ -340,12 +355,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1F2937),
+        backgroundColor: const Color(0xFF1E293B),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white70, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white70, size: 18),
           onPressed: () => Navigator.pop(context),
         ),
+        titleSpacing: 0,
         title: Row(
           children: [
             Container(
@@ -353,54 +369,59 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               height: 36,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                  colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF6366F1).withValues(alpha: 0.35),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-              child: const Icon(Icons.smart_toy_outlined, color: Colors.white, size: 20),
+              child: const Icon(Icons.smart_toy_rounded, color: Colors.white, size: 20),
             ),
             const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'AI Assistant',
-                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                Row(
-                  children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF4ade80),
-                        shape: BoxShape.circle,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Jiya AI Assistant',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Row(
+                    children: [
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF22C55E),
+                          shape: BoxShape.circle,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Text(
-                      'Online • Groq AI',
-                      style: TextStyle(color: Colors.blueGrey, fontSize: 10),
-                    ),
-                  ],
-                ),
-              ],
+                      const SizedBox(width: 5),
+                      const Text(
+                        'Online • Aapki Personal Assistant',
+                        style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10, fontWeight: FontWeight.w500),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: Row(
-              children: [
-                _langChip('HI', 'hindi'),
-                const SizedBox(width: 4),
-                _langChip('EN', 'english'),
-              ],
-            ),
-          ),
+          _buildLanguageToggle(),
         ],
       ),
       body: Column(
@@ -409,13 +430,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               itemCount: _messages.length + (_isLoading ? 1 : 0),
               itemBuilder: (context, index) {
                 if (index == _messages.length) {
                   return _buildTypingIndicator();
                 }
-                return _buildMessageBubble(_messages[index]);
+                return _buildMessageBubble(_messages[index], index);
               },
             ),
           ),
@@ -425,10 +446,30 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _langChip(String label, String lang) {
+  Widget _buildLanguageToggle() {
+    return Container(
+      margin: const EdgeInsets.only(right: 10),
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _langPill('EN', 'english'),
+          _langPill('HI', 'hindi'),
+        ],
+      ),
+    );
+  }
+
+  Widget _langPill(String label, String lang) {
     final isActive = _selectedLang == lang;
     return GestureDetector(
       onTap: () {
+        if (_selectedLang == lang) return;
         setState(() {
           _selectedLang = lang;
           if (_messages.isNotEmpty && !_messages.first.isUser) {
@@ -446,18 +487,19 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
           gradient: isActive
-              ? const LinearGradient(colors: [Color(0xFF667eea), Color(0xFF764ba2)])
+              ? const LinearGradient(
+                  colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
               : null,
-          color: isActive ? null : Colors.white10,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isActive ? Colors.transparent : Colors.white24,
-          ),
+          color: isActive ? null : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isActive ? Colors.white : Colors.white54,
+            color: isActive ? Colors.white : Colors.white60,
             fontSize: 11,
             fontWeight: FontWeight.bold,
           ),
@@ -467,35 +509,51 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildQuickChips() {
-    final chips = [
-      ('📅 Today\'s Follow-ups', 'aaj ke follow ups batao', Colors.orange),
-      ('⏳ Pending Follow-ups', 'pending follow ups dikhao', Colors.amber),
-      ('💰 Pending Fees', 'pending fee wale students dikhao', Colors.teal),
-      ('🆕 New Enquiries', 'new enquiries dikhao', Colors.blue),
-      ('📝 Saved Notes', 'mere saved notes dikhao', Colors.purple),
-      ('📞 Call Student', 'call karo', Colors.green),
-      ('💬 WhatsApp', 'whatsapp karo', Colors.lightGreen),
-      ('📖 AI Guide', 'help guide batao', Colors.indigo),
-    ];
+    final chips = _selectedLang == 'english'
+        ? [
+            ('📊 Overview', 'show today\'s CRM overview & statistics', Colors.indigo),
+            ('➕ New Enquiry', 'new enquiry add karo', Colors.purple),
+            ('🎓 Direct Admission', 'direct admission karna hai', Colors.emerald),
+            ('📅 Follow-ups', 'show today\'s follow-ups', Colors.orange),
+            ('💰 Pending Fees', 'show students with pending fees', Colors.teal),
+            ('⭐ Interested Leads', 'show interested leads', Colors.amber),
+            ('🆕 Enquiries', 'show new enquiries', Colors.blue),
+            ('✍️ Draft Message', 'draft a fee reminder message', Colors.pink),
+            ('📋 Attendance', 'show today\'s staff attendance report', Colors.cyan),
+            ('💳 Payments', 'show payment & collection report', Colors.green),
+          ]
+        : [
+            ('📊 Overview', 'aaj ka summary aur overview dikhao', Colors.indigo),
+            ('➕ New Enquiry', 'nayi enquiry add karo', Colors.purple),
+            ('🎓 Direct Admission', 'direct admission karna hai', Colors.emerald),
+            ('📅 Follow-ups', 'aaj ke follow ups batao', Colors.orange),
+            ('💰 Pending Fees', 'pending fee wale students dikhao', Colors.teal),
+            ('⭐ Interested Leads', 'interested leads dikhao', Colors.amber),
+            ('🆕 Enquiries', 'new enquiries dikhao', Colors.blue),
+            ('✍️ Draft Message', 'fee reminder message draft karo', Colors.pink),
+            ('📋 Attendance', 'aaj ki staff attendance report dikhao', Colors.cyan),
+            ('💳 Payments', 'aaj ka payment aur collection report dikhao', Colors.green),
+          ];
 
     return Container(
-      height: 48,
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      height: 46,
+      padding: const EdgeInsets.symmetric(vertical: 5),
       decoration: BoxDecoration(
         color: const Color(0xFFFFFFFF),
+        border: const Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 3,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
       child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         scrollDirection: Axis.horizontal,
         itemCount: chips.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        separatorBuilder: (_, _) => const SizedBox(width: 6),
         itemBuilder: (context, i) {
           final color = chips[i].$3;
           return GestureDetector(
@@ -505,17 +563,17 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             },
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: color.withOpacity(0.35)),
+                  color: color.withValues(alpha: 0.09),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: color.withValues(alpha: 0.28)),
                 ),
                 child: Text(
                   chips[i].$1,
                   style: TextStyle(
                     color: color.shade800,
-                    fontSize: 12,
+                    fontSize: 11.5,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -527,27 +585,35 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildMessageBubble(_ChatMessage msg) {
+  Widget _buildMessageBubble(_ChatMessage msg, int index) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final bubbleMaxWidth = screenWidth < 420 ? screenWidth * 0.72 : screenWidth * 0.78;
+    final bubbleMaxWidth = screenWidth < 420 ? screenWidth * 0.82 : screenWidth * 0.85;
+
+    // If it's the initial welcome message, show the rich starter hero
+    if (index == 0 && !msg.isUser) {
+      return _buildWelcomeHeroCard(msg);
+    }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         mainAxisAlignment: msg.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!msg.isUser) ...[
             Container(
-              width: 28,
-              height: 28,
+              width: 30,
+              height: 30,
+              margin: const EdgeInsets.only(top: 2),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                  colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.smart_toy_outlined, color: Colors.white, size: 14),
+              child: const Icon(Icons.smart_toy_rounded, color: Colors.white, size: 16),
             ),
             const SizedBox(width: 8),
           ],
@@ -555,78 +621,278 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: bubbleMaxWidth),
               child: Column(
-              crossAxisAlignment: msg.isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: screenWidth < 420 ? 12 : 14,
-                    vertical: screenWidth < 420 ? 9 : 10,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: msg.isUser
-                        ? const LinearGradient(
-                            colors: [Color(0xFF667eea), Color(0xFF764ba2)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          )
-                        : null,
-                    color: msg.isUser ? null : const Color(0xFFFFFFFF),
-                    borderRadius: BorderRadius.only(
-                      topLeft: const Radius.circular(16),
-                      topRight: const Radius.circular(16),
-                      bottomLeft: Radius.circular(msg.isUser ? 16 : 4),
-                      bottomRight: Radius.circular(msg.isUser ? 4 : 16),
+                crossAxisAlignment: msg.isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: screenWidth < 420 ? 13 : 15,
+                      vertical: screenWidth < 420 ? 10 : 12,
                     ),
-                    border: msg.isUser ? null : Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SelectableText(
-                        msg.text,
-                        style: TextStyle(
-                          color: msg.isUser ? Colors.white : const Color(0xFF1E293B),
-                          fontSize: 13.5,
-                          height: 1.55,
-                        ),
+                    decoration: BoxDecoration(
+                      gradient: msg.isUser
+                          ? const LinearGradient(
+                              colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            )
+                          : null,
+                      color: msg.isUser ? null : const Color(0xFFFFFFFF),
+                      borderRadius: BorderRadius.only(
+                        topLeft: const Radius.circular(18),
+                        topRight: const Radius.circular(18),
+                        bottomLeft: Radius.circular(msg.isUser ? 18 : 4),
+                        bottomRight: Radius.circular(msg.isUser ? 4 : 18),
                       ),
-                      if (msg.action != null && msg.action!['mobile'] != null) ...[
-                        const SizedBox(height: 8),
-                        _buildActionLauncherButton(msg.action!),
+                      border: msg.isUser ? null : Border.all(color: const Color(0xFFE2E8F0)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
                       ],
-                      if (!msg.isUser && msg.rawData != null)
-                        _buildLeadCardsFromRawData(msg.rawData!),
-                    ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SelectableText(
+                          msg.text,
+                          style: TextStyle(
+                            color: msg.isUser ? Colors.white : const Color(0xFF1E293B),
+                            fontSize: 13.5,
+                            height: 1.55,
+                          ),
+                        ),
+                        if (msg.action != null && msg.action!['mobile'] != null) ...[
+                          const SizedBox(height: 10),
+                          _buildActionLauncherButton(msg.action!),
+                        ],
+                        if (!msg.isUser && msg.rawData != null)
+                          _buildLeadCardsFromRawData(msg.rawData!),
+                      ],
+                    ),
                   ),
-                ),
-                if (!msg.isUser)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4, left: 4),
-                    child: GestureDetector(
-                      onTap: () => _speakText(msg.text, msg.lang),
+                  if (!msg.isUser)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4, left: 4),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            _isSpeaking ? Icons.stop_circle_outlined : Icons.volume_up_outlined,
-                            color: const Color(0xFF667eea),
-                            size: 14,
+                          GestureDetector(
+                            onTap: () => _speakText(msg.text, msg.lang),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF6366F1).withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    _isSpeaking ? Icons.stop_circle_rounded : Icons.volume_up_rounded,
+                                    color: const Color(0xFF6366F1),
+                                    size: 13,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    _isSpeaking ? 'Stop' : 'Listen',
+                                    style: const TextStyle(
+                                      color: Color(0xFF6366F1),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                          const SizedBox(width: 3),
-                          Text(
-                            _isSpeaking ? 'Stop' : 'Speak',
-                            style: const TextStyle(color: Color(0xFF667eea), fontSize: 11),
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () {
+                              Clipboard.setData(ClipboardData(text: msg.text));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Message copied to clipboard!'),
+                                  duration: Duration(seconds: 1),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF64748B).withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.copy_rounded, color: Color(0xFF64748B), size: 12),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Copy',
+                                    style: TextStyle(
+                                      color: Color(0xFF64748B),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-              ],
+                ],
               ),
             ),
           ),
           if (msg.isUser) const SizedBox(width: 8),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWelcomeHeroCard(_ChatMessage msg) {
+    final isHindi = _selectedLang == 'hindi';
+
+    final starters = isHindi
+        ? [
+            ('📊 Overview & Stats', 'aaj ka summary aur overview dikhao', const Color(0xFF6366F1)),
+            ('📋 Staff Attendance', 'aaj ki staff attendance report dikhao', const Color(0xFF0891B2)),
+            ('💳 Payment Report', 'aaj ka payment aur collection report dikhao', const Color(0xFF059669)),
+            ('📅 Today\'s Follow-ups', 'aaj ke follow ups batao', const Color(0xFFF59E0B)),
+            ('💰 Pending Fees', 'pending fee wale students dikhao', const Color(0xFF0D9488)),
+            ('✍️ Draft Reminder', 'fee reminder message draft karo', const Color(0xFFE11D48)),
+          ]
+        : [
+            ('📊 CRM Overview', 'show today\'s CRM overview & statistics', const Color(0xFF6366F1)),
+            ('📋 Staff Attendance', 'show today\'s staff attendance report', const Color(0xFF0891B2)),
+            ('💳 Payment Report', 'show payment & collection report', const Color(0xFF059669)),
+            ('📅 Today\'s Follow-ups', 'show today\'s follow-ups', const Color(0xFFF59E0B)),
+            ('💰 Pending Fees', 'show students with pending fees', const Color(0xFF0D9488)),
+            ('✍️ Draft Reminder', 'draft a fee reminder message', const Color(0xFFE11D48)),
+          ];
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _userDisplayName.isNotEmpty
+                          ? 'Namaste, $_userDisplayName!'
+                          : 'Welcome to SSSAM AI!',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                    const Text(
+                      'Ask any CRM question or tap a starter below',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Text(
+            msg.text,
+            style: const TextStyle(
+              fontSize: 13,
+              height: 1.5,
+              color: Color(0xFF334155),
+            ),
+          ),
+          const SizedBox(height: 14),
+          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+          const SizedBox(height: 12),
+          const Text(
+            '⚡ Quick Starters',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF475569),
+            ),
+          ),
+          const SizedBox(height: 10),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              childAspectRatio: 2.5,
+            ),
+            itemCount: starters.length,
+            itemBuilder: (context, i) {
+              final item = starters[i];
+              return GestureDetector(
+                onTap: () {
+                  _controller.text = item.$2;
+                  _sendMessage();
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: item.$3.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: item.$3.withValues(alpha: 0.25)),
+                  ),
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    item.$1,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: item.$3,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -800,7 +1066,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               border: Border.all(color: const Color(0xFFCBD5E1), width: 1),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF0F172A).withOpacity(0.04),
+                  color: const Color(0xFF0F172A).withValues(alpha: 0.04),
                   blurRadius: 4,
                   offset: const Offset(0, 1),
                 ),
@@ -1005,7 +1271,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           width: 6,
                           height: 6,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF667eea).withOpacity(0.7),
+                            color: const Color(0xFF667eea).withValues(alpha: 0.7),
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -1034,59 +1300,96 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       ),
       decoration: const BoxDecoration(
         color: Color(0xFFFFFFFF),
-        border: Border(top: BorderSide(color: Colors.white10)),
+        border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           AnimatedSwitcher(
-            duration: const Duration(milliseconds: 220),
+            duration: const Duration(milliseconds: 250),
             child: _isListening
                 ? Container(
                     key: const ValueKey('listening-indicator'),
                     margin: const EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFf5576c).withValues(alpha: 0.12),
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFFF1F2), Color(0xFFFFE4E6)],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFf5576c).withValues(alpha: 0.35)),
+                      border: Border.all(color: const Color(0xFFFDA4AF), width: 1.2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFF43F5E).withValues(alpha: 0.12),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Row(
                       children: [
-                        FadeTransition(
-                          opacity: Tween<double>(begin: 0.45, end: 1).animate(_voicePulseController),
-                          child: const Icon(Icons.graphic_eq_rounded, color: Color(0xFFff8fab), size: 18),
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF43F5E).withValues(alpha: 0.15),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.mic_rounded,
+                            color: Color(0xFFE11D48),
+                            size: 16,
+                          ),
                         ),
-                        const SizedBox(width: 8),
-                        const Expanded(
-                          child: Text(
-                            'Sun raha hoon... bolte rahiye',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                _selectedLang == 'hindi'
+                                    ? 'Sun raha hoon... bolte rahiye'
+                                    : 'Listening... speak now',
+                                style: const TextStyle(
+                                  color: Color(0xFF9F1239),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              Text(
+                                _selectedLang == 'hindi'
+                                    ? 'Rukne ke liye mic icon dabaye'
+                                    : 'Tap mic button to stop',
+                                style: const TextStyle(
+                                  color: Color(0xFFBE123C),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         Row(
                           mainAxisSize: MainAxisSize.min,
-                          children: List.generate(3, (index) {
+                          children: List.generate(4, (index) {
                             return AnimatedBuilder(
                               animation: _voicePulseController,
                               builder: (context, child) {
-                                final scale =
-                                    0.55 + (((_voicePulseController.value + (index * 0.18)) % 1.0) * 0.85);
-                                return Transform.scale(scale: scale, child: child);
+                                final phase = index * 0.25;
+                                final val = ((_voicePulseController.value + phase) % 1.0);
+                                final height = 6.0 + (val < 0.5 ? val * 2 : (1 - val) * 2) * 12.0;
+                                return Container(
+                                  width: 3.5,
+                                  height: height,
+                                  margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE11D48),
+                                    borderRadius: BorderRadius.circular(3),
+                                  ),
+                                );
                               },
-                              child: Container(
-                                width: 6,
-                                height: 6,
-                                margin: const EdgeInsets.symmetric(horizontal: 2),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFff8fab),
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
                             );
                           }),
                         ),
@@ -1099,37 +1402,73 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             children: [
               GestureDetector(
                 onTap: _isListening ? _stopListening : _startListening,
-                child: ScaleTransition(
-                  scale: Tween<double>(begin: 1, end: 1.08).animate(
-                    CurvedAnimation(parent: _voicePulseController, curve: Curves.easeInOut),
-                  ),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      gradient: _isListening
-                          ? const LinearGradient(colors: [Color(0xFFf5576c), Color(0xFFf093fb)])
-                          : null,
-                      color: _isListening ? null : Colors.black.withOpacity(0.05),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: _isListening ? Colors.transparent : Colors.black12,
-                      ),
-                      boxShadow: _isListening
-                          ? [
-                              BoxShadow(
-                                color: const Color(0xFFf5576c).withValues(alpha: 0.4),
-                                blurRadius: 12,
-                                spreadRadius: 2,
+                child: SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: Center(
+                    child: AnimatedBuilder(
+                      animation: _voicePulseController,
+                      builder: (context, child) {
+                        final pulse = _voicePulseController.value;
+                        return Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            if (_isListening) ...[
+                              Container(
+                                width: 40 + (pulse * 14),
+                                height: 40 + (pulse * 14),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: const Color(0xFFF43F5E).withValues(alpha: (1 - pulse) * 0.35),
+                                ),
                               ),
-                            ]
-                          : [],
-                    ),
-                    child: Icon(
-                      _isListening ? Icons.mic : Icons.mic_none,
-                      color: _isListening ? Colors.white : const Color(0xFF64748B),
-                      size: 20,
+                              Container(
+                                width: 40 + (pulse * 6),
+                                height: 40 + (pulse * 6),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: const Color(0xFFFB7185).withValues(alpha: (1 - pulse) * 0.45),
+                                ),
+                              ),
+                            ],
+                            child!,
+                          ],
+                        );
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          gradient: _isListening
+                              ? const LinearGradient(
+                                  colors: [Color(0xFFF43F5E), Color(0xFFD946EF)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                )
+                              : null,
+                          color: _isListening ? null : const Color(0xFFF1F5F9),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: _isListening ? Colors.transparent : const Color(0xFFE2E8F0),
+                            width: 1.2,
+                          ),
+                          boxShadow: _isListening
+                              ? [
+                                  BoxShadow(
+                                    color: const Color(0xFFF43F5E).withValues(alpha: 0.45),
+                                    blurRadius: 12,
+                                    spreadRadius: 2,
+                                  ),
+                                ]
+                              : [],
+                        ),
+                        child: Icon(
+                          _isListening ? Icons.mic : Icons.mic_none_rounded,
+                          color: _isListening ? Colors.white : const Color(0xFF64748B),
+                          size: 21,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -1144,21 +1483,21 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   onSubmitted: (_) => _sendMessage(),
                   decoration: InputDecoration(
                     hintText: _isListening
-                        ? 'Sun raha hoon...'
+                        ? (_selectedLang == 'hindi' ? '🎙️ Sun raha hoon...' : '🎙️ Listening to voice...')
                         : (_selectedLang == 'hindi'
                             ? 'Hinglish mein puchho... jaise: aaj ke follow up dikhao'
-                            : 'Ask in proper English...'),
+                            : 'Ask in English... e.g. show today\'s follow-ups'),
                     hintStyle: TextStyle(color: Colors.blueGrey.shade400, fontSize: 13),
                     filled: true,
                     fillColor: Colors.white,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(24),
-                      borderSide: const BorderSide(color: Colors.black12, width: 1),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(24),
-                      borderSide: const BorderSide(color: Colors.black12, width: 1),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(24),
