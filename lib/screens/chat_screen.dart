@@ -431,12 +431,15 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             child: ListView.builder(
               controller: _scrollController,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              itemCount: _messages.length + (_isLoading ? 1 : 0),
+              itemCount: _messages.length + (_isLoading ? 1 : 0) + (_isListening ? 1 : 0),
               itemBuilder: (context, index) {
-                if (index == _messages.length) {
+                if (index < _messages.length) {
+                  return _buildMessageBubble(_messages[index], index);
+                } else if (_isLoading && index == _messages.length) {
                   return _buildTypingIndicator();
+                } else {
+                  return _buildListeningIndicatorBubble();
                 }
-                return _buildMessageBubble(_messages[index], index);
               },
             ),
           ),
@@ -675,6 +678,92 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                msg.isLiked = !(msg.isLiked ?? false);
+                                if (msg.isLiked == true) msg.isDisliked = false;
+                              });
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Shukriya! Feedback received 👍'),
+                                  duration: Duration(seconds: 1),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: (msg.isLiked ?? false)
+                                    ? Colors.green.withValues(alpha: 0.15)
+                                    : const Color(0xFF64748B).withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    (msg.isLiked ?? false) ? Icons.thumb_up_rounded : Icons.thumb_up_outlined,
+                                    color: (msg.isLiked ?? false) ? Colors.green : const Color(0xFF64748B),
+                                    size: 12,
+                                  ),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    'Like',
+                                    style: TextStyle(
+                                      color: (msg.isLiked ?? false) ? Colors.green : const Color(0xFF64748B),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                msg.isDisliked = !(msg.isDisliked ?? false);
+                                if (msg.isDisliked == true) msg.isLiked = false;
+                              });
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Feedback saved for Jiya AI self-correction 👎'),
+                                  duration: Duration(seconds: 1),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: (msg.isDisliked ?? false)
+                                    ? Colors.red.withValues(alpha: 0.15)
+                                    : const Color(0xFF64748B).withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    (msg.isDisliked ?? false) ? Icons.thumb_down_rounded : Icons.thumb_down_outlined,
+                                    color: (msg.isDisliked ?? false) ? Colors.redAccent : const Color(0xFF64748B),
+                                    size: 12,
+                                  ),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    'Dislike',
+                                    style: TextStyle(
+                                      color: (msg.isDisliked ?? false) ? Colors.redAccent : const Color(0xFF64748B),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
                           GestureDetector(
                             onTap: () => _speakText(msg.text, msg.lang),
                             child: Container(
@@ -1283,6 +1372,87 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     );
   }
 
+  Widget _buildListeningIndicatorBubble() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFF43F5E), Color(0xFFE11D48)],
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(Icons.mic_rounded, color: Colors.white, size: 16),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF1F2),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(18),
+                topRight: Radius.circular(18),
+                bottomRight: Radius.circular(18),
+                bottomLeft: Radius.circular(4),
+              ),
+              border: Border.all(color: const Color(0xFFFDA4AF), width: 1),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFF43F5E).withValues(alpha: 0.08),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _selectedLang == 'hindi'
+                      ? '🎙️ Jiya AI sun rahi hai...'
+                      : '🎙️ Jiya AI is listening...',
+                  style: const TextStyle(
+                    color: Color(0xFF9F1239),
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: List.generate(3, (index) {
+                    return AnimatedBuilder(
+                      animation: _voicePulseController,
+                      builder: (context, child) {
+                        final phase = index * 0.33;
+                        final val = ((_voicePulseController.value + phase) % 1.0);
+                        final size = 4.0 + (val < 0.5 ? val * 2 : (1 - val) * 2) * 5.0;
+                        return Container(
+                          width: size,
+                          height: size,
+                          margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFE11D48),
+                            shape: BoxShape.circle,
+                          ),
+                        );
+                      },
+                    );
+                  }),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildInputArea() {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final safeBottomPadding = MediaQuery.of(context).padding.bottom;
@@ -1545,6 +1715,8 @@ class _ChatMessage {
   final String lang;
   final Map<String, dynamic>? action;
   final Map<String, dynamic>? rawData;
+  bool? isLiked;
+  bool? isDisliked;
 
   _ChatMessage({
     required this.text,
@@ -1552,5 +1724,7 @@ class _ChatMessage {
     required this.lang,
     this.action,
     this.rawData,
+    this.isLiked,
+    this.isDisliked,
   });
 }
