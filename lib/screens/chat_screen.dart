@@ -87,10 +87,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
     final namePart = firstName.isNotEmpty ? ' $firstName' : '';
     if (_selectedLang == 'english') {
-      return '$salutation$namePart! $icon\n\nI am your Jiya AI assistant. You can speak 🎙️ or type 💬 to ask anything. What would you like to check today?';
+      return '$salutation$namePart! $icon\n\nI am your Khushi AI assistant. You can speak 🎙️ or type 💬 to ask anything. What would you like to check today?';
     }
 
-    return '$salutation$namePart! $icon\n\nMain aapki Jiya AI assistant hoon. Aap mujhse bolkar 🎙️ ya likhkar 💬 puch sakte hain. Aapko aaj kya jankari chahiye ya kaunsa kaam karna hai?';
+    return '$salutation$namePart! $icon\n\nMain aapki Khushi AI assistant hoon. Aap mujhse bolkar 🎙️ ya likhkar 💬 puch sakte hain. Aapko aaj kya jankari chahiye ya kaunsa kaam karna hai?';
   }
 
   Future<void> _initSpeech() async {
@@ -402,7 +402,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Jiya AI Assistant',
+                    'Khushi AI Assistant',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 15,
@@ -675,8 +675,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           const SizedBox(height: 10),
                           _buildActionLauncherButton(msg.action!),
                         ],
-                        if (!msg.isUser && msg.rawData != null)
-                          _buildLeadCardsFromRawData(msg.rawData!),
                       ],
                     ),
                   ),
@@ -737,7 +735,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                               });
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Feedback saved for Jiya AI self-correction 👎'),
+                                  content: Text('Feedback saved for Khushi AI self-correction 👎'),
                                   duration: Duration(seconds: 1),
                                 ),
                               );
@@ -1430,8 +1428,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               children: [
                 Text(
                   _selectedLang == 'hindi'
-                      ? '🎙️ Jiya AI sun rahi hai...'
-                      : '🎙️ Jiya AI is listening...',
+                      ? '🎙️ Khushi AI sun rahi hai...'
+                      : '🎙️ Khushi AI is listening...',
                   style: const TextStyle(
                     color: Color(0xFF9F1239),
                     fontSize: 13.5,
